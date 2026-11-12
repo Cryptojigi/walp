@@ -8,13 +8,12 @@ dist/
 build/
 out/
 *.wasm
+contracts/out/
 
 # Environment & Secrets (NEVER commit secrets)
 .env
-.env.local
-.env.development.local
-.env.test.local
-.env.production.local
+.env.*
+!.env.example
 *.pem
 *.key
 .near-credentials/
@@ -41,6 +40,6 @@ Thumbs.db
 
 # Contract build artifacts / Rust / JS SDK temp
 target/
+contracts/target/
 .cargo/
 build-wasm/
-
