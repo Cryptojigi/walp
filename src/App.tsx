@@ -1,345 +1,340 @@
-import React, { useState, useEffect } from 'react';
+import React, { useCallback, useEffect, useState } from 'react';
+import { formatEther } from 'ethers';
 import { Navbar } from './components/Navbar';
 import { AccountCard } from './components/AccountCard';
 import { IntentConsole } from './components/IntentConsole';
-import { HistoryTable } from './components/HistoryTable';
-import { TxProgressModal } from './components/TxProgressModal';
-import { AccountModal } from './components/AccountModal';
-import { MpcService } from './services/mpc';
-import { EvmService } from './services/evm';
-import { NearService } from './services/near';
-import { ParsedIntent } from './services/agent';
-import { ExecutionStep, StoredTxRecord } from './types';
-import { DEFAULT_DERIVATION_PATH, EVM_CONFIG } from './config/constants';
+import { ControlCenter } from './components/ControlCenter';
+import { ContractModal } from './components/ContractModal';
+import { DEFAULT_DERIVATION_PATH } from './config/constants';
+import { WalpApi } from './services/api';
+import {
+  NearAiModelInfo,
+  NearCallOutcome,
+  ParsedIntentResponse,
+  ServerHealth,
+  TxActivityRecord,
+  UnsignedTxPayload,
+  VaultStatusResponse,
+} from './types';
+import { AlertTriangle, Terminal } from 'lucide-react';
 
-const INITIAL_STEPS: ExecutionStep[] = [
-  {
-    id: 'prepare',
-    title: '1. Build EIP-1559 Transaction',
-    description: 'Fetch network fee data, nonce, and calculate 32-byte Keccak-256 transaction sighash.',
-    status: 'idle',
-  },
-  {
-    id: 'mpc_request',
-    title: '2. Call NEAR MPC Contract',
-    description: 'Invoke sign method on v1.signer-prod.testnet with derivation path.',
-    status: 'idle',
-  },
-  {
-    id: 'mpc_consensus',
-    title: '3. Threshold Node Consensus',
-    description: 'MPC cluster agrees on signature shares and returns (r, s, recovery_id).',
-    status: 'idle',
-  },
-  {
-    id: 'serialize',
-    title: '4. Assemble ECDSA Raw Transaction',
-    description: 'Package signature into raw RLP-encoded EVM payload.',
-    status: 'idle',
-  },
-  {
-    id: 'broadcast',
-    title: '5. Broadcast & Confirm on Sepolia',
-    description: 'Send raw transaction to Ethereum Sepolia RPC and verify onchain.',
-    status: 'idle',
-  },
-];
+const STORAGE_CONTRACT_KEY = 'walp_vault_contract_id';
+const STORAGE_PATH_KEY = 'walp_derivation_path';
+const STORAGE_ACTIVITY_KEY = 'walp_activity_records_v2';
 
-export const App: React.FC = () => {
-  // State
-  const [nearAccountId, setNearAccountId] = useState<string>(() => {
-    return localStorage.getItem('walp_near_account') || 'walp-demo.testnet';
-  });
-  const [privateKey, setPrivateKey] = useState<string>(() => {
-    return localStorage.getItem('walp_private_key') || '';
-  });
-  const [path, setPath] = useState<string>(DEFAULT_DERIVATION_PATH);
-  const [nearBalance, setNearBalance] = useState<string>('5.240');
-  const [ethAddress, setEthAddress] = useState<string>('0x0000000000000000000000000000000000000000');
-  const [ethBalance, setEthBalance] = useState<string>('0.0000');
+function extractReasonCode(outcome: NearCallOutcome): string {
+  if (outcome.result?.reason_code) {
+    return outcome.result.reason_code;
+  }
+  for (const evt of outcome.events) {
+    const data = evt.data?.[0];
+    if (data && typeof data.reason_code === 'string') {
+      return data.reason_code;
+    }
+  }
+  const match = outcome.failureReason?.match(/WALP_[A-Z0-9_]+/);
+  return match ? match[0] : outcome.success ? 'WALP_OK' : 'WALP_EXECUTION_ERROR';
+}
+
+function classifyOutcome(
+  outcome: NearCallOutcome
+): TxActivityRecord['outcomeStatus'] {
+  if (!outcome.success) {
+    return 'BLOCKED_ONCHAIN';
+  }
+  const status = outcome.result?.status;
+  if (status === 'SIGNED') return 'SIGNED';
+  if (status === 'PENDING_APPROVAL') return 'PENDING_APPROVAL';
+  if (status === 'DENIED') return 'DENIED_ASYNC';
+  return 'FAILED';
+}
+
+export function App() {
+  const [health, setHealth] = useState<ServerHealth | null>(null);
+  const [models, setModels] = useState<NearAiModelInfo[]>([]);
+  const [vaultContractId, setVaultContractId] = useState<string>(
+    () => localStorage.getItem(STORAGE_CONTRACT_KEY) || ''
+  );
+  const [path, setPath] = useState<string>(
+    () => localStorage.getItem(STORAGE_PATH_KEY) || DEFAULT_DERIVATION_PATH
+  );
+  const [vaultStatus, setVaultStatus] = useState<VaultStatusResponse | null>(null);
   const [isRefreshing, setIsRefreshing] = useState(false);
+  const [serverError, setServerError] = useState<string | null>(null);
+  const [isConfigOpen, setIsConfigOpen] = useState(false);
 
-  // Modals & Execution
-  const [isAccountModalOpen, setIsAccountModalOpen] = useState(false);
-  const [isTxModalOpen, setIsTxModalOpen] = useState(false);
-  const [isExecuting, setIsExecuting] = useState(false);
-  const [steps, setSteps] = useState<ExecutionStep[]>(INITIAL_STEPS);
-  const [txError, setTxError] = useState<string | null>(null);
-  const [finalTxHash, setFinalTxHash] = useState<string | null>(null);
-  const [finalExplorerUrl, setFinalExplorerUrl] = useState<string | null>(null);
-
-  // History
-  const [records, setRecords] = useState<StoredTxRecord[]>(() => {
-    const saved = localStorage.getItem('walp_tx_records');
-    return saved ? JSON.parse(saved) : [];
+  const [activityRecords, setActivityRecords] = useState<TxActivityRecord[]>(() => {
+    try {
+      const saved = localStorage.getItem(STORAGE_ACTIVITY_KEY);
+      if (saved) return JSON.parse(saved) as TxActivityRecord[];
+    } catch {
+      // Ignore corrupt local UI log
+    }
+    return [];
   });
 
-  // Save records on change
-  useEffect(() => {
-    localStorage.setItem('walp_tx_records', JSON.stringify(records));
-  }, [records]);
-
-  // Derive Address on Account or Path Change
-  useEffect(() => {
-    let isCancelled = false;
-    async function updateDerivedAddress() {
-      if (!nearAccountId) return;
+  const refreshVault = useCallback(
+    async (targetContractId?: string, targetPath?: string) => {
+      const effectiveContract =
+        targetContractId !== undefined ? targetContractId : vaultContractId;
+      const effectivePath = targetPath !== undefined ? targetPath : path;
+      setIsRefreshing(true);
+      setServerError(null);
       try {
-        const { ethAddress: derived } = await MpcService.deriveAddress(nearAccountId, path);
-        if (!isCancelled) {
-          setEthAddress(derived);
-        }
+        const status = await WalpApi.getVaultStatus(
+          effectiveContract || undefined,
+          effectivePath
+        );
+        setVaultStatus(status);
       } catch (err) {
-        console.error('Derivation error:', err);
+        setServerError(err instanceof Error ? err.message : String(err));
+      } finally {
+        setIsRefreshing(false);
       }
-    }
-    updateDerivedAddress();
-    return () => { isCancelled = true; };
-  }, [nearAccountId, path]);
-
-  // Refresh Balances
-  const handleRefresh = async () => {
-    setIsRefreshing(true);
-    try {
-      if (nearAccountId) {
-        const nb = await NearService.getNearBalance(nearAccountId);
-        setNearBalance(nb);
-      }
-      if (ethAddress && ethAddress !== '0x0000000000000000000000000000000000000000') {
-        const eb = await EvmService.getBalance(ethAddress);
-        setEthBalance(eb);
-      }
-    } catch (err) {
-      console.warn('Refresh error:', err);
-    } finally {
-      setIsRefreshing(false);
-    }
-  };
+    },
+    [vaultContractId, path]
+  );
 
   useEffect(() => {
-    handleRefresh();
-  }, [nearAccountId, ethAddress]);
-
-  // Save Account Modal Handler
-  const handleSaveAccount = async (newAccountId: string, newPrivateKey?: string) => {
-    setNearAccountId(newAccountId);
-    localStorage.setItem('walp_near_account', newAccountId);
-    if (newPrivateKey) {
-      setPrivateKey(newPrivateKey);
-      localStorage.setItem('walp_private_key', newPrivateKey);
-      await NearService.setAccountKey(newAccountId, newPrivateKey);
-    } else {
-      setPrivateKey('');
-      localStorage.removeItem('walp_private_key');
-    }
-  };
-
-  // Step Update Helper
-  const updateStep = (id: string, update: Partial<ExecutionStep>) => {
-    setSteps((prev) =>
-      prev.map((step) => (step.id === id ? { ...step, ...update } : step))
-    );
-  };
-
-  // Execution Flow
-  const handleExecuteIntent = async (parsedIntent: ParsedIntent) => {
-    setIsExecuting(true);
-    setIsTxModalOpen(true);
-    setTxError(null);
-    setFinalTxHash(null);
-    setFinalExplorerUrl(null);
-    setSteps(INITIAL_STEPS.map((s) => ({ ...s, status: 'idle', detail: undefined })));
-
-    try {
-      // Step 1: Build EIP-1559 Transaction
-      updateStep('prepare', { status: 'pending' });
-      const { request } = parsedIntent;
-      const unsigned = await EvmService.buildUnsignedTransaction(
-        ethAddress,
-        request.toAddress,
-        request.amount,
-        request.data || '0x'
-      );
-      updateStep('prepare', {
-        status: 'success',
-        detail: `Sighash: ${unsigned.hashToSign.slice(0, 18)}... (Nonce: ${unsigned.tx.nonce})`
-      });
-
-      // Step 2: Call NEAR MPC Contract
-      updateStep('mpc_request', { status: 'pending' });
-      let signature: { r: string; s: string; v: number };
-
-      if (privateKey) {
-        // Authenticated onchain execution
-        const nearAccount = await NearService.getAccount(nearAccountId);
-        updateStep('mpc_request', {
-          status: 'pending',
-          detail: `Broadcasting function call to ${nearAccount.accountId}...`
-        });
-        signature = await MpcService.requestSignature(nearAccount, unsigned.hashBytes, path);
-      } else {
-        // Sandbox Simulation Mode with mathematical precision
-        updateStep('mpc_request', {
-          status: 'pending',
-          detail: `Simulating yield/resume against v1.signer-prod.testnet...`
-        });
-        await new Promise((r) => setTimeout(r, 1200));
-        signature = {
-          r: '0x' + unsigned.hashToSign.slice(2).padStart(64, 'a'),
-          s: '0x356e9c9f28d8b8e0e7a2b5d4f1c9a8e7d6b5c4a3f2e1d0c9b8a7f6e5d4c3b2a1',
-          v: 0
-        };
-      }
-      updateStep('mpc_request', { status: 'success', detail: `Attached 300 TGas & 0.05 NEAR deposit` });
-
-      // Step 3: Threshold Node Consensus
-      updateStep('mpc_consensus', { status: 'pending' });
-      await new Promise((r) => setTimeout(r, 800));
-      updateStep('mpc_consensus', {
-        status: 'success',
-        detail: `r: ${signature.r.slice(0, 14)}... | s: ${signature.s.slice(0, 14)}... | v: ${signature.v}`
-      });
-
-      // Step 4: Assemble ECDSA Raw Transaction
-      updateStep('serialize', { status: 'pending' });
-      await new Promise((r) => setTimeout(r, 600));
-      updateStep('serialize', {
-        status: 'success',
-        detail: `Valid EIP-1559 RLP payload compiled`
-      });
-
-      // Step 5: Broadcast to Ethereum Sepolia RPC
-      updateStep('broadcast', { status: 'pending' });
-      let txHash = '';
-      let explorerUrl = '';
-
+    let active = true;
+    (async () => {
       try {
-        if (privateKey) {
-          const broadcastResult = await EvmService.broadcastSignedTransaction(unsigned.tx, signature);
-          txHash = broadcastResult.txHash;
-          explorerUrl = broadcastResult.explorerUrl;
-        } else {
-          await new Promise((r) => setTimeout(r, 1000));
-          txHash = '0x' + Array.from({ length: 64 }, () => Math.floor(Math.random() * 16).toString(16)).join('');
-          explorerUrl = `${EVM_CONFIG.sepolia.blockExplorerUrl}/tx/${txHash}`;
+        const [h, m] = await Promise.all([
+          WalpApi.getHealth(),
+          WalpApi.getAiModels().catch(() => ({ models: [] })),
+        ]);
+        if (!active) return;
+        setHealth(h);
+        setModels(m.models);
+        const initialContract =
+          localStorage.getItem(STORAGE_CONTRACT_KEY) || h.vaultContractId || '';
+        if (initialContract && initialContract !== vaultContractId) {
+          setVaultContractId(initialContract);
         }
-      } catch (broadcastErr: any) {
-        console.warn('Broadcast fallback:', broadcastErr);
-        txHash = '0x' + Array.from({ length: 64 }, () => Math.floor(Math.random() * 16).toString(16)).join('');
-        explorerUrl = `${EVM_CONFIG.sepolia.blockExplorerUrl}/tx/${txHash}`;
+        await refreshVault(initialContract, path);
+      } catch (err) {
+        if (!active) return;
+        setServerError(
+          err instanceof Error
+            ? `API server unreachable (${err.message}). Start with npm run dev.`
+            : 'API server unreachable. Start with npm run dev.'
+        );
       }
+    })();
+    return () => {
+      active = false;
+    };
+    // Initial boot only
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, []);
 
-      updateStep('broadcast', {
-        status: 'success',
-        detail: `Confirmed: ${txHash.slice(0, 18)}...`,
-        txHash,
-        explorerUrl
-      });
-
-      setFinalTxHash(txHash);
-      setFinalExplorerUrl(explorerUrl);
-
-      // Add to History
-      const newRecord: StoredTxRecord = {
-        id: Math.random().toString(36).substring(2, 9),
-        timestamp: Date.now(),
-        nearAccountId,
-        targetChain: 'Ethereum Sepolia',
-        toAddress: request.toAddress,
-        amount: request.amount,
-        foreignTxHash: txHash,
-        status: 'confirmed',
-        intentPrompt: parsedIntent.request.intentPrompt
-      };
-      setRecords((prev) => [newRecord, ...prev]);
-
-      // Refresh balances after 2 seconds
-      setTimeout(handleRefresh, 2000);
-
-    } catch (err: any) {
-      console.error('Execution failure:', err);
-      setTxError(err.message || 'An error occurred during execution');
-    } finally {
-      setIsExecuting(false);
+  const handleApplyContractId = (newId: string) => {
+    setVaultContractId(newId);
+    if (newId) {
+      localStorage.setItem(STORAGE_CONTRACT_KEY, newId);
+    } else {
+      localStorage.removeItem(STORAGE_CONTRACT_KEY);
     }
+    void refreshVault(newId, path);
   };
+
+  const handlePathChange = (newPath: string) => {
+    setPath(newPath);
+    localStorage.setItem(STORAGE_PATH_KEY, newPath);
+    void refreshVault(vaultContractId, newPath);
+  };
+
+  const handleActivityLogged = ({
+    prompt,
+    parsed,
+    unsigned,
+    outcome,
+  }: {
+    prompt: string;
+    parsed: ParsedIntentResponse;
+    unsigned: UnsignedTxPayload;
+    outcome: NearCallOutcome;
+  }) => {
+    const entry: TxActivityRecord = {
+      id: outcome.txHash || `local-${Date.now()}`,
+      timestamp: Date.now(),
+      prompt,
+      toAddress: parsed.recipient || unsigned.to,
+      amountEth: parsed.amountEth,
+      chainId: parsed.chainId || unsigned.chainId,
+      outcomeStatus: classifyOutcome(outcome),
+      reasonCode: extractReasonCode(outcome),
+      nearTxHash: outcome.txHash || undefined,
+      nearExplorerUrl: outcome.explorerUrl || undefined,
+      sepoliaTxHash: outcome.sepoliaBroadcast?.txHash,
+      sepoliaExplorerUrl: outcome.sepoliaBroadcast?.explorerUrl,
+      events: outcome.events || [],
+      detail:
+        outcome.result?.detail ||
+        outcome.failureReason ||
+        outcome.broadcastError ||
+        undefined,
+    };
+
+    setActivityRecords((prev) => {
+      const next = [entry, ...prev].slice(0, 40);
+      try {
+        localStorage.setItem(STORAGE_ACTIVITY_KEY, JSON.stringify(next));
+      } catch {
+        // Ignore storage quota issues
+      }
+      return next;
+    });
+  };
+
+  const handleOwnerDecisionLogged = ({
+    action,
+    intent,
+    outcome,
+  }: {
+    action: 'approve' | 'reject';
+    intent: { intent_id: string; to: string; value_wei: string; chain_id: number };
+    outcome: NearCallOutcome;
+  }) => {
+    let amountEth = intent.value_wei;
+    try {
+      amountEth = formatEther(BigInt(intent.value_wei));
+    } catch {
+      // keep raw wei string
+    }
+    const entry: TxActivityRecord = {
+      id: outcome.txHash || `owner-${action}-${intent.intent_id}-${Date.now()}`,
+      timestamp: Date.now(),
+      prompt: `Owner ${action} ${intent.intent_id}`,
+      toAddress: intent.to,
+      amountEth,
+      chainId: intent.chain_id,
+      outcomeStatus: classifyOutcome(outcome),
+      reasonCode: extractReasonCode(outcome),
+      nearTxHash: outcome.txHash || undefined,
+      nearExplorerUrl: outcome.explorerUrl || undefined,
+      sepoliaTxHash: outcome.sepoliaBroadcast?.txHash,
+      sepoliaExplorerUrl: outcome.sepoliaBroadcast?.explorerUrl,
+      events: outcome.events || [],
+      detail:
+        outcome.result?.detail ||
+        outcome.failureReason ||
+        outcome.broadcastError ||
+        undefined,
+    };
+
+    setActivityRecords((prev) => {
+      const next = [entry, ...prev].slice(0, 40);
+      try {
+        localStorage.setItem(STORAGE_ACTIVITY_KEY, JSON.stringify(next));
+      } catch {
+        // Ignore storage quota issues
+      }
+      return next;
+    });
+  };
+
+  const activeContractId =
+    vaultStatus?.contractId || vaultContractId || health?.vaultContractId || '';
 
   return (
-    <div className="min-h-screen bg-[#0b0e14] text-[#e6edf3] flex flex-col">
-      {/* Top Navigation */}
+    <div className="min-h-screen bg-[#0d1117] text-[#e6edf3] flex flex-col">
       <Navbar
-        nearAccountId={nearAccountId}
-        onOpenAccountModal={() => setIsAccountModalOpen(true)}
+        vaultContractId={activeContractId}
+        paused={Boolean(vaultStatus?.policy?.paused)}
+        nearAiConfigured={Boolean(health?.nearAiConfigured)}
+        onOpenConfigModal={() => setIsConfigOpen(true)}
       />
 
-      {/* Main Container */}
-      <main className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-8 flex-1 w-full space-y-6">
-        
-        {/* Hero Section */}
-        <div className="flex flex-col sm:flex-row sm:items-center justify-between pb-3 border-b border-[#21262d] gap-4">
-          <div>
-            <h1 className="text-2xl font-bold tracking-tight text-white flex items-center space-x-2">
-              <span>Walp</span>
-              <span className="text-sm font-normal text-[#8b949e]">· Autonomous Cross-Chain Execution</span>
-            </h1>
-            <p className="text-sm text-[#8b949e] mt-1">
-              Command Ethereum Sepolia, Bitcoin, and EVM liquidity directly from NEAR via native Chain Signatures.
-            </p>
+      <main className="flex-1 max-w-7xl w-full mx-auto px-4 sm:px-6 lg:px-8 py-6 space-y-6">
+        {serverError && (
+          <div className="bg-red-950/30 border border-red-700/50 rounded-xl p-4 flex items-start space-x-3 text-xs text-red-200">
+            <AlertTriangle className="w-4 h-4 text-red-400 shrink-0 mt-0.5" />
+            <div>
+              <p className="font-semibold text-red-300">Backend Server Notice</p>
+              <p className="mt-0.5 text-red-200/80">{serverError}</p>
+            </div>
           </div>
-          <div className="flex items-center space-x-2">
-            <span className="text-xs px-2.5 py-1 rounded-md bg-[#161b22] border border-[#30363d] text-[#c9d1d9] font-mono">
-              MPC: v1.signer-prod.testnet
-            </span>
+        )}
+
+        {!activeContractId && !serverError && (
+          <div className="bg-amber-950/20 border border-amber-700/40 rounded-xl p-4 flex items-start space-x-3 text-xs text-amber-200">
+            <Terminal className="w-4 h-4 text-amber-400 shrink-0 mt-0.5" />
+            <div className="space-y-1">
+              <p className="font-semibold text-amber-300">
+                No Deployed Vault Contract Selected
+              </p>
+              <p className="text-amber-200/80">
+                Set <code className="font-mono bg-[#0d1117] px-1 py-0.5 rounded">WALP_VAULT_CONTRACT_ID</code> in <code className="font-mono bg-[#0d1117] px-1 py-0.5 rounded">.env</code> or click <strong className="text-white">Vault Config</strong> above. Offline verification runs without credentials via <code className="font-mono bg-[#0d1117] px-1 py-0.5 rounded">cargo test --test sandbox_redteam</code>.
+              </p>
+            </div>
+          </div>
+        )}
+
+        <AccountCard
+          vaultContractId={activeContractId}
+          nearBalance={vaultStatus?.nearBalance || '0'}
+          ethAddress={vaultStatus?.ethAddress || ''}
+          ethBalance={vaultStatus?.ethBalance || '0'}
+          path={path}
+          onPathChange={handlePathChange}
+          onRefresh={() => void refreshVault()}
+          isRefreshing={isRefreshing}
+          deployed={Boolean(vaultStatus?.deployed)}
+        />
+
+        <div className="grid grid-cols-1 lg:grid-cols-12 gap-6 items-start">
+          <div className="lg:col-span-6">
+            <IntentConsole
+              derivedEthAddress={vaultStatus?.ethAddress || ''}
+              vaultContractId={activeContractId}
+              path={path}
+              policy={vaultStatus?.policy || null}
+              models={models}
+              agentConfigured={Boolean(health?.agentAccountConfigured)}
+              onActivityLogged={handleActivityLogged}
+              onRefreshVault={() => void refreshVault()}
+            />
+          </div>
+
+          <div className="lg:col-span-6">
+            <ControlCenter
+              vaultContractId={activeContractId}
+              derivedEthAddress={vaultStatus?.ethAddress || ''}
+              policy={vaultStatus?.policy || null}
+              pendingIntents={vaultStatus?.pendingIntents || []}
+              denylist={vaultStatus?.denylist || []}
+              allowlist={vaultStatus?.allowlist || []}
+              registryEntries={vaultStatus?.registryEntries || []}
+              activityRecords={activityRecords}
+              ownerSignerConfigured={Boolean(health?.ownerSignerConfigured)}
+              onOwnerDecisionLogged={handleOwnerDecisionLogged}
+              onRefreshVault={() => void refreshVault()}
+            />
           </div>
         </div>
-
-        {/* Account & Dual-Chain Identity Card */}
-        <AccountCard
-          nearAccountId={nearAccountId}
-          nearBalance={nearBalance}
-          ethAddress={ethAddress}
-          ethBalance={ethBalance}
-          path={path}
-          onPathChange={setPath}
-          onRefresh={handleRefresh}
-          isRefreshing={isRefreshing}
-        />
-
-        {/* Intent Console */}
-        <IntentConsole
-          derivedEthAddress={ethAddress}
-          onExecute={handleExecuteIntent}
-          isExecuting={isExecuting}
-        />
-
-        {/* Execution History */}
-        <HistoryTable records={records} />
-
       </main>
 
-      {/* Footer */}
-      <footer className="border-t border-[#21262d] py-6 text-center text-xs text-[#8b949e] font-mono">
-        Walp · Built for NEAR Protocol Hackathon · Powered by NEAR MPC Chain Signatures
+      <footer className="border-t border-[#21262d] bg-[#0d1117] py-4 px-4 sm:px-6 lg:px-8 text-xs text-[#8b949e]">
+        <div className="max-w-7xl mx-auto flex flex-col sm:flex-row items-start sm:items-center justify-between gap-2">
+          <span>
+            Walp — Onchain NEAR Rust RLP Firewall + Chain Signatures (<code className="font-mono">v1.signer-prod.testnet</code>)
+          </span>
+          <span className="font-mono">
+            AI: cloud-api.near.ai TEE • 1Click: dry-run quotes only • No browser private keys
+          </span>
+        </div>
       </footer>
 
-      {/* Modals */}
-      <TxProgressModal
-        isOpen={isTxModalOpen}
-        onClose={() => setIsTxModalOpen(false)}
-        steps={steps}
-        error={txError}
-        finalTxHash={finalTxHash}
-        explorerUrl={finalExplorerUrl}
-      />
-
-      <AccountModal
-        isOpen={isAccountModalOpen}
-        onClose={() => setIsAccountModalOpen(false)}
-        currentAccountId={nearAccountId}
-        onSaveAccount={handleSaveAccount}
+      <ContractModal
+        isOpen={isConfigOpen}
+        onClose={() => setIsConfigOpen(false)}
+        currentContractId={activeContractId}
+        onApplyContractId={handleApplyContractId}
+        health={health}
       />
     </div>
   );
-};
+}
 
 export default App;

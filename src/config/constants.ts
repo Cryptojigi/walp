@@ -1,13 +1,11 @@
 export const NEAR_CONFIG = {
   networkId: 'testnet',
-  nodeUrl: 'https://rpc.testnet.near.org',
-  walletUrl: 'https://testnet.mynearwallet.com',
-  helperUrl: 'https://helper.testnet.near.org',
+  nodeUrl: 'https://test.rpc.fastnear.com',
+  fallbackNodeUrls: ['https://test.rpc.fastnear.com', 'https://rpc.testnet.near.org'],
   explorerUrl: 'https://testnet.nearblocks.io',
   mpcContractId: 'v1.signer-prod.testnet',
-  // Official MPC root public key for v1.signer-prod.testnet (ECDSA secp256k1)
-  // Can be verified via `near view v1.signer-prod.testnet public_key`
-  mpcRootPublicKey: 'secp256k1:4HFcTSKXTeYPmsxnGsqJgGcr88vjh17r6gYtHnEgo75q37yD4zH4oJqA5h56626qP2UAgu76656q4h5',
+  mpcRootPublicKey:
+    'secp256k1:4NfTiv3UsGahebgTaHyD9vF8KYKMBnfd6kh94mK6xv8fGBiJB8TBtFMP5WWXz6B89Ac1fbpzPwAvoyQebemHFwx3',
 };
 
 export const EVM_CONFIG = {
@@ -17,12 +15,11 @@ export const EVM_CONFIG = {
     nativeCurrency: { name: 'Sepolia Ether', symbol: 'ETH', decimals: 18 },
     rpcUrls: [
       'https://ethereum-sepolia-rpc.publicnode.com',
-      'https://rpc.sepolia.org',
       'https://1rpc.io/sepolia',
+      'https://sepolia.drpc.org',
     ],
     blockExplorerUrl: 'https://sepolia.etherscan.io',
-  }
+  },
 };
 
 export const DEFAULT_DERIVATION_PATH = 'ethereum-1';
-
