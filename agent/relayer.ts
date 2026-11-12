@@ -1,63 +1,54 @@
 /**
- * Walp Autonomous Relayer & Intent Daemon
- * 
- * This service runs autonomously to monitor cross-chain intent requests,
- * request threshold signatures from NEAR MPC (v1.signer-prod.testnet),
- * and broadcast confirmed transactions to target EVM networks (Ethereum Sepolia).
+ * Walp Autonomous Relayer & Vault Monitor
+ *
+ * Monitors pending intents and vault policy state on `walp-vault.<owner>.testnet`
+ * and checks connectivity to NEAR Testnet, MPC (`v1.signer-prod.testnet`), and Sepolia RPC.
  */
 
-import { ethers } from 'ethers';
-import * as nearAPI from 'near-api-js';
+import { loadDotEnv } from '../server/utils/env.ts';
+import { MPC_CONTRACT_ID, SEPOLIA_CHAIN_ID, getServerConfig } from '../server/config.ts';
+import {
+  VaultPolicy,
+  callNearView,
+  deriveVaultEvmAddress,
+  withSepoliaProvider,
+} from '../server/services/vaultClient.ts';
 
-const NEAR_RPC = 'https://rpc.testnet.near.org';
-const MPC_CONTRACT_ID = 'v1.signer-prod.testnet';
-const SEPOLIA_RPC = 'https://ethereum-sepolia-rpc.publicnode.com';
-const SEPOLIA_CHAIN_ID = 11155111;
+loadDotEnv();
 
 async function runAutonomousRelayer() {
+  const cfg = getServerConfig();
   console.log('------------------------------------------------------------');
-  console.log('🤖 Walp Autonomous Relayer Daemon initialized.');
-  console.log(`Connecting to NEAR Testnet: ${NEAR_RPC}`);
-  console.log(`Targeting MPC Contract: ${MPC_CONTRACT_ID}`);
-  console.log(`EVM Settlement Network: Ethereum Sepolia (Chain ID: ${SEPOLIA_CHAIN_ID})`);
+  console.log('Walp Autonomous Relayer & Policy Monitor');
+  console.log(`NEAR RPCs      : ${cfg.nearRpcUrls.join(', ')}`);
+  console.log(`MPC Contract   : ${MPC_CONTRACT_ID}`);
+  console.log(`Sepolia Chain  : ${SEPOLIA_CHAIN_ID}`);
+  console.log(`Vault Contract : ${cfg.vaultContractId || '(not configured in .env)'}`);
   console.log('------------------------------------------------------------\n');
 
-  const provider = new ethers.JsonRpcProvider(SEPOLIA_RPC);
-  const blockNumber = await provider.getBlockNumber();
-  console.log(`[Sepolia] Current Head Block: #${blockNumber}`);
+  const blockNumber = await withSepoliaProvider((provider) => provider.getBlockNumber());
+  console.log(`[Sepolia] Head block: #${blockNumber}`);
 
-  // Query MPC root public key
-  try {
-    const res = await fetch(NEAR_RPC, {
-      method: 'POST',
-      headers: { 'Content-Type': 'application/json' },
-      body: JSON.stringify({
-        jsonrpc: '2.0',
-        id: 'relayer-init',
-        method: 'query',
-        params: {
-          request_type: 'call_function',
-          finality: 'final',
-          account_id: MPC_CONTRACT_ID,
-          method_name: 'public_key',
-          args_base64: 'e30='
-        }
-      })
-    });
-    const data = await res.json();
-    if (data.result && data.result.result) {
-      const pubKey = String.fromCharCode(...data.result.result);
-      console.log(`[NEAR MPC] Root Public Key verified: ${pubKey}`);
-    }
-  } catch (e: any) {
-    console.warn('[NEAR MPC] Warning querying root public key:', e.message);
+  const rootPubKey = await callNearView<string>(MPC_CONTRACT_ID, 'public_key', {});
+  console.log(`[NEAR MPC] Root public key: ${rootPubKey}`);
+
+  if (cfg.vaultContractId) {
+    const [policy, pending, derived] = await Promise.all([
+      callNearView<VaultPolicy>(cfg.vaultContractId, 'get_policy', {}),
+      callNearView<unknown[]>(cfg.vaultContractId, 'get_pending_intents', {}),
+      deriveVaultEvmAddress(cfg.vaultContractId, 'ethereum-1'),
+    ]);
+    console.log(`[Vault] Derived Sepolia Address : ${derived.ethAddress}`);
+    console.log(
+      `[Vault] Paused=${policy.paused} | MaxTx=${policy.max_tx_wei} wei | DailySpent=${policy.spent_today_wei}/${policy.daily_limit_wei} wei`
+    );
+    console.log(`[Vault] Pending Owner Approvals : ${pending.length}`);
+  } else {
+    console.log('[Vault] Set WALP_VAULT_CONTRACT_ID in .env to monitor live onchain vault state.');
   }
-
-  console.log('\n✅ Relayer listening for cross-chain execution intents...');
 }
 
 runAutonomousRelayer().catch((err) => {
-  console.error('Fatal Relayer Error:', err);
+  console.error('Relayer error:', err);
   process.exit(1);
 });
-
