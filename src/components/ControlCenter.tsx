@@ -1,13 +1,12 @@
 import React, { useEffect, useState } from 'react';
 import {
-  Shield,
-  CheckCircle2,
-  XCircle,
-  ExternalLink,
-  RefreshCw,
   ArrowRightLeft,
+  CheckCircle2,
+  ExternalLink,
   Lock,
+  Shield,
   Unlock,
+  XCircle,
 } from 'lucide-react';
 import {
   AllowlistEntry,
@@ -52,6 +51,11 @@ function formatWeiToEth(weiStr?: string): string {
   }
 }
 
+function shortAddress(addr: string): string {
+  if (!addr || addr.length < 14) return addr;
+  return `${addr.slice(0, 6)}...${addr.slice(-4)}`;
+}
+
 export const ControlCenter: React.FC<ControlCenterProps> = ({
   vaultContractId,
   derivedEthAddress,
@@ -91,9 +95,9 @@ export const ControlCenter: React.FC<ControlCenterProps> = ({
 
   // Denylist / Allowlist quick forms
   const [newDenyAddr, setNewDenyAddr] = useState('');
-  const [newDenyReason, setNewDenyReason] = useState('Suspicious counterparty');
+  const [newDenyReason] = useState('Suspicious counterparty');
   const [newAllowAddr, setNewAllowAddr] = useState('');
-  const [newAllowLabel, setNewAllowLabel] = useState('Trusted contract');
+  const [newAllowLabel] = useState('Trusted contract');
 
   // 1Click Intents Quote state
   const [tokens, setTokens] = useState<OneClickToken[]>([]);
@@ -133,38 +137,41 @@ export const ControlCenter: React.FC<ControlCenterProps> = ({
   const dailyPct = dailyWei > 0n ? Number((spentWei * 100n) / dailyWei) : 0;
 
   return (
-    <div className="bg-[#161b22] border border-[#30363d] rounded-xl overflow-hidden">
-      {/* Tabs */}
-      <div className="flex flex-wrap border-b border-[#21262d] bg-[#0d1117]">
-        {(
-          [
-            ['policy', 'Onchain Policy & Lists'],
-            ['queue', `Approval Queue (${pendingIntents.length})`],
-            ['intents', '1Click Intents Quote'],
-            ['audit', `Audit & Receipts (${activityRecords.length})`],
-          ] as Array<[TabKey, string]>
-        ).map(([key, label]) => (
-          <button
-            key={key}
-            onClick={() => setTab(key)}
-            className={`px-4 py-3 text-xs font-semibold border-b-2 transition-colors ${
-              tab === key
-                ? 'border-[#00ec97] text-white bg-[#161b22]'
-                : 'border-transparent text-[#8b949e] hover:text-[#e6edf3]'
-            }`}
-          >
-            {label}
-          </button>
-        ))}
+    <section className="rounded-[28px] bg-white dark:bg-[#1c1c1e] border border-black/[0.06] dark:border-white/[0.09] shadow-[0_8px_30px_rgba(0,0,0,0.04)] dark:shadow-[0_12px_36px_rgba(0,0,0,0.35)] overflow-hidden min-w-0">
+      {/* iOS Segmented Tab Strip */}
+      <div className="p-3 sm:p-4 border-b border-black/[0.06] dark:border-white/[0.08]">
+        <div className="flex overflow-x-auto no-scrollbar gap-1 p-1 rounded-2xl bg-[#f5f5f7] dark:bg-[#2c2c2e]">
+          {(
+            [
+              ['policy', 'Policy & Lists'],
+              ['queue', `Queue (${pendingIntents.length})`],
+              ['intents', '1Click Quote'],
+              ['audit', `Audit (${activityRecords.length})`],
+            ] as Array<[TabKey, string]>
+          ).map(([key, label]) => (
+            <button
+              key={key}
+              type="button"
+              onClick={() => setTab(key)}
+              className={`shrink-0 flex-1 px-3.5 py-2 rounded-xl text-xs font-semibold whitespace-nowrap transition-all ${
+                tab === key
+                  ? 'bg-white dark:bg-[#3a3a3c] text-[#1d1d1f] dark:text-white shadow-sm'
+                  : 'text-[#59595e] dark:text-[#98989d] hover:text-[#1d1d1f] dark:hover:text-white'
+              }`}
+            >
+              {label}
+            </button>
+          ))}
+        </div>
       </div>
 
-      <div className="p-5 space-y-4">
+      <div className="p-5 sm:p-6 space-y-4 min-w-0">
         {actionMsg && (
           <div
-            className={`p-2.5 rounded border text-xs font-mono space-y-1 ${
+            className={`p-3 rounded-2xl border text-xs font-mono space-y-1.5 break-words ${
               actionMsg.ok
-                ? 'bg-emerald-950/30 border-emerald-800 text-emerald-200'
-                : 'bg-amber-950/40 border-amber-800 text-amber-200'
+                ? 'bg-[#34c759]/10 border-[#34c759]/30 text-[#146c32] dark:text-[#30d158]'
+                : 'bg-amber-500/10 border-amber-500/30 text-amber-800 dark:text-amber-300'
             }`}
           >
             <div>{actionMsg.text}</div>
@@ -175,7 +182,7 @@ export const ControlCenter: React.FC<ControlCenterProps> = ({
                     href={actionMsg.nearUrl}
                     target="_blank"
                     rel="noreferrer"
-                    className="text-[#00ec97] hover:underline inline-flex items-center space-x-1"
+                    className="text-[#005bb8] dark:text-[#0a84ff] hover:underline inline-flex items-center gap-1"
                   >
                     <span>NearBlocks</span>
                     <ExternalLink className="w-3 h-3" />
@@ -186,7 +193,7 @@ export const ControlCenter: React.FC<ControlCenterProps> = ({
                     href={actionMsg.sepoliaUrl}
                     target="_blank"
                     rel="noreferrer"
-                    className="text-[#00ec97] hover:underline inline-flex items-center space-x-1"
+                    className="text-[#005bb8] dark:text-[#0a84ff] hover:underline inline-flex items-center gap-1"
                   >
                     <span>Etherscan</span>
                     <ExternalLink className="w-3 h-3" />
@@ -199,41 +206,41 @@ export const ControlCenter: React.FC<ControlCenterProps> = ({
 
         {/* TAB 1: POLICY */}
         {tab === 'policy' && (
-          <div className="space-y-4">
+          <div className="space-y-4 min-w-0">
             {policy ? (
               <>
-                <div className="bg-[#0d1117] border border-[#21262d] rounded-lg p-4 space-y-3">
-                  <div className="flex items-center justify-between">
-                    <span className="text-xs font-semibold text-white flex items-center space-x-1.5">
-                      <Shield className="w-4 h-4 text-[#00ec97]" />
+                <div className="rounded-2xl bg-[#f5f5f7] dark:bg-[#2c2c2e] p-4 space-y-3 min-w-0">
+                  <div className="flex flex-wrap items-center justify-between gap-2">
+                    <span className="text-xs font-semibold text-[#1d1d1f] dark:text-white flex items-center gap-1.5">
+                      <Shield className="w-4 h-4 text-[#00a86b] dark:text-[#30d158] shrink-0" />
                       <span>24h Rolling Spend Gauge</span>
                     </span>
-                    <span className="text-xs font-mono text-[#c9d1d9]">
+                    <span className="text-xs font-mono text-[#1d1d1f] dark:text-[#f5f5f7]">
                       {formatWeiToEth(policy.spent_today_wei)} / {formatWeiToEth(policy.daily_limit_wei)} ETH
                     </span>
                   </div>
-                  <div className="w-full h-2 bg-[#21262d] rounded-full overflow-hidden">
+                  <div className="w-full h-2 bg-black/[0.08] dark:bg-white/[0.1] rounded-full overflow-hidden">
                     <div
-                      className="h-full bg-[#00ec97] transition-all"
+                      className="h-full bg-[#00a86b] dark:bg-[#30d158] transition-all"
                       style={{ width: `${Math.min(100, dailyPct)}%` }}
                     />
                   </div>
-                  <div className="grid grid-cols-2 sm:grid-cols-4 gap-3 pt-2 text-xs font-mono">
-                    <div>
-                      <span className="text-[#8b949e] block text-[10px]">Max Per-Tx</span>
-                      <span className="text-white">{formatWeiToEth(policy.max_tx_wei)} ETH</span>
+                  <div className="grid grid-cols-2 sm:grid-cols-4 gap-3 pt-1 text-xs font-mono">
+                    <div className="min-w-0">
+                      <span className="text-[#59595e] dark:text-[#98989d] block text-[10px]">Max Per-Tx</span>
+                      <span className="text-[#1d1d1f] dark:text-white">{formatWeiToEth(policy.max_tx_wei)} ETH</span>
                     </div>
-                    <div>
-                      <span className="text-[#8b949e] block text-[10px]">Approval Threshold</span>
-                      <span className="text-white">{formatWeiToEth(policy.approval_threshold_wei)} ETH</span>
+                    <div className="min-w-0">
+                      <span className="text-[#59595e] dark:text-[#98989d] block text-[10px]">Approval Threshold</span>
+                      <span className="text-[#1d1d1f] dark:text-white">{formatWeiToEth(policy.approval_threshold_wei)} ETH</span>
                     </div>
-                    <div>
-                      <span className="text-[#8b949e] block text-[10px]">Allowed Chains</span>
-                      <span className="text-white">{policy.allowed_chain_ids.join(', ')}</span>
+                    <div className="min-w-0">
+                      <span className="text-[#59595e] dark:text-[#98989d] block text-[10px]">Allowed Chains</span>
+                      <span className="text-[#1d1d1f] dark:text-white">{policy.allowed_chain_ids.join(', ')}</span>
                     </div>
-                    <div>
-                      <span className="text-[#8b949e] block text-[10px]">Shared Registry</span>
-                      <span className="text-white truncate block" title={policy.registry_contract_id || 'None'}>
+                    <div className="min-w-0">
+                      <span className="text-[#59595e] dark:text-[#98989d] block text-[10px]">Shared Registry</span>
+                      <span className="text-[#1d1d1f] dark:text-white truncate block" title={policy.registry_contract_id || 'None'}>
                         {policy.registry_contract_id || 'Disabled'}
                       </span>
                     </div>
@@ -241,14 +248,17 @@ export const ControlCenter: React.FC<ControlCenterProps> = ({
                 </div>
 
                 {/* Owner Emergency Kill-Switch */}
-                <div className="flex items-center justify-between bg-[#0d1117] border border-[#21262d] rounded-lg p-3 text-xs">
-                  <div>
-                    <div className="font-semibold text-white">Owner Emergency Kill-Switch</div>
-                    <div className="text-[#8b949e]">
-                      Owner: <span className="font-mono text-[#c9d1d9]">{policy.owner_id}</span>
+                <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-3 rounded-2xl bg-[#f5f5f7] dark:bg-[#2c2c2e] p-4 text-xs">
+                  <div className="min-w-0">
+                    <div className="font-semibold text-[#1d1d1f] dark:text-white">
+                      Owner Emergency Kill-Switch
+                    </div>
+                    <div className="text-[#59595e] dark:text-[#98989d] mt-0.5 truncate">
+                      Owner: <span className="font-mono text-[#1d1d1f] dark:text-white">{policy.owner_id}</span>
                     </div>
                   </div>
                   <button
+                    type="button"
                     disabled={actionBusy || !ownerSignerConfigured}
                     onClick={() =>
                       runOwnerAction(async () => {
@@ -269,10 +279,10 @@ export const ControlCenter: React.FC<ControlCenterProps> = ({
                         });
                       })
                     }
-                    className={`px-3 py-1.5 rounded font-semibold flex items-center space-x-1.5 disabled:opacity-50 ${
+                    className={`min-h-[40px] px-4 py-2 rounded-full font-semibold inline-flex items-center justify-center gap-1.5 disabled:opacity-45 shrink-0 transition-colors ${
                       policy.paused
-                        ? 'bg-[#00ec97] text-black'
-                        : 'bg-rose-900/60 hover:bg-rose-800 text-rose-100 border border-rose-700'
+                        ? 'bg-[#34c759] text-white dark:text-black'
+                        : 'bg-[#ff3b30]/12 hover:bg-[#ff3b30]/20 text-[#c92a22] dark:text-[#ff6961]'
                     }`}
                   >
                     {policy.paused ? <Unlock className="w-3.5 h-3.5" /> : <Lock className="w-3.5 h-3.5" />}
@@ -281,44 +291,55 @@ export const ControlCenter: React.FC<ControlCenterProps> = ({
                 </div>
 
                 {ownerSignerConfigured && vaultContractId && (
-                  <div className="bg-[#0d1117] border border-[#21262d] rounded-lg p-3.5 space-y-2.5 text-xs">
-                    <div className="font-semibold text-white">Update Owner Policy Limits</div>
-                    <div className="grid grid-cols-2 sm:grid-cols-4 gap-2 font-mono">
-                      <div>
-                        <label className="text-[#8b949e] block text-[10px] mb-1">Max Tx (ETH)</label>
+                  <div className="rounded-2xl bg-[#f5f5f7] dark:bg-[#2c2c2e] p-4 space-y-3 text-xs">
+                    <div className="font-semibold text-[#1d1d1f] dark:text-white">
+                      Update Owner Policy Limits
+                    </div>
+                    <div className="grid grid-cols-2 sm:grid-cols-4 gap-2.5 font-mono">
+                      <div className="min-w-0">
+                        <label htmlFor="walp-max-tx" className="text-[#59595e] dark:text-[#98989d] block text-[10px] mb-1">Max Tx (ETH)</label>
                         <input
+                          id="walp-max-tx"
+                          name="maxTxEth"
                           value={maxTxEth}
                           onChange={(e) => setMaxTxEth(e.target.value)}
-                          className="w-full bg-[#161b22] border border-[#30363d] rounded px-2 py-1 text-[11px] text-white"
+                          className="w-full min-h-[38px] bg-white dark:bg-[#1c1c1e] border border-black/[0.07] dark:border-white/[0.08] rounded-xl px-2.5 py-1.5 text-xs text-[#1d1d1f] dark:text-white focus:outline-none focus:ring-2 focus:ring-[#005bb8]"
                         />
                       </div>
-                      <div>
-                        <label className="text-[#8b949e] block text-[10px] mb-1">Daily (ETH)</label>
+                      <div className="min-w-0">
+                        <label htmlFor="walp-daily-limit" className="text-[#59595e] dark:text-[#98989d] block text-[10px] mb-1">Daily (ETH)</label>
                         <input
+                          id="walp-daily-limit"
+                          name="dailyLimitEth"
                           value={dailyLimitEth}
                           onChange={(e) => setDailyLimitEth(e.target.value)}
-                          className="w-full bg-[#161b22] border border-[#30363d] rounded px-2 py-1 text-[11px] text-white"
+                          className="w-full min-h-[38px] bg-white dark:bg-[#1c1c1e] border border-black/[0.07] dark:border-white/[0.08] rounded-xl px-2.5 py-1.5 text-xs text-[#1d1d1f] dark:text-white focus:outline-none focus:ring-2 focus:ring-[#005bb8]"
                         />
                       </div>
-                      <div>
-                        <label className="text-[#8b949e] block text-[10px] mb-1">Escalate (ETH)</label>
+                      <div className="min-w-0">
+                        <label htmlFor="walp-threshold-eth" className="text-[#59595e] dark:text-[#98989d] block text-[10px] mb-1">Escalate (ETH)</label>
                         <input
+                          id="walp-threshold-eth"
+                          name="thresholdEth"
                           value={thresholdEth}
                           onChange={(e) => setThresholdEth(e.target.value)}
-                          className="w-full bg-[#161b22] border border-[#30363d] rounded px-2 py-1 text-[11px] text-white"
+                          className="w-full min-h-[38px] bg-white dark:bg-[#1c1c1e] border border-black/[0.07] dark:border-white/[0.08] rounded-xl px-2.5 py-1.5 text-xs text-[#1d1d1f] dark:text-white focus:outline-none focus:ring-2 focus:ring-[#005bb8]"
                         />
                       </div>
-                      <div>
-                        <label className="text-[#8b949e] block text-[10px] mb-1">Chain IDs</label>
+                      <div className="min-w-0">
+                        <label htmlFor="walp-chain-ids" className="text-[#59595e] dark:text-[#98989d] block text-[10px] mb-1">Chain IDs</label>
                         <input
+                          id="walp-chain-ids"
+                          name="allowedChainIds"
                           value={chainIdsInput}
                           onChange={(e) => setChainIdsInput(e.target.value)}
-                          className="w-full bg-[#161b22] border border-[#30363d] rounded px-2 py-1 text-[11px] text-white"
+                          className="w-full min-h-[38px] bg-white dark:bg-[#1c1c1e] border border-black/[0.07] dark:border-white/[0.08] rounded-xl px-2.5 py-1.5 text-xs text-[#1d1d1f] dark:text-white focus:outline-none focus:ring-2 focus:ring-[#005bb8]"
                         />
                       </div>
                     </div>
                     <div className="flex justify-end">
                       <button
+                        type="button"
                         disabled={actionBusy}
                         onClick={() =>
                           runOwnerAction(async () => {
@@ -345,7 +366,7 @@ export const ControlCenter: React.FC<ControlCenterProps> = ({
                             });
                           })
                         }
-                        className="px-3 py-1 rounded bg-[#21262d] hover:bg-[#30363d] border border-[#30363d] text-[11px] font-semibold text-white disabled:opacity-50"
+                        className="min-h-[38px] px-4 py-1.5 rounded-full bg-[#1d1d1f] hover:bg-black dark:bg-[#f5f5f7] dark:hover:bg-white text-xs font-semibold text-white dark:text-[#1d1d1f] disabled:opacity-45 transition-colors"
                       >
                         Apply Policy
                       </button>
@@ -354,29 +375,34 @@ export const ControlCenter: React.FC<ControlCenterProps> = ({
                 )}
               </>
             ) : (
-              <div className="text-xs text-[#8b949e] bg-[#0d1117] border border-[#21262d] rounded-lg p-4">
-                No deployed vault detected yet. Set <code className="text-[#c9d1d9]">WALP_VAULT_CONTRACT_ID</code> in <code className="text-[#c9d1d9]">.env</code> or click the vault config button in the header.
+              <div className="text-xs text-[#59595e] dark:text-[#98989d] bg-[#f5f5f7] dark:bg-[#2c2c2e] rounded-2xl p-4">
+                No deployed vault detected yet. Set <code className="font-mono text-[#1d1d1f] dark:text-white">WALP_VAULT_CONTRACT_ID</code> in <code className="font-mono text-[#1d1d1f] dark:text-white">.env</code> or open Vault Config in the header.
               </div>
             )}
 
             {/* Denylist + Shared Registry + Allowlist */}
-            <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
-              <div className="bg-[#0d1117] border border-[#21262d] rounded-lg p-3.5 space-y-2.5">
-                <div className="text-xs font-semibold text-white">
-                  Local Denylist ({denylist.length}) & Shared Registry ({registryEntries.length})
+            <div className="grid grid-cols-1 md:grid-cols-2 gap-3.5">
+              <div className="rounded-2xl bg-[#f5f5f7] dark:bg-[#2c2c2e] p-4 space-y-3 min-w-0">
+                <div className="text-xs font-semibold text-[#1d1d1f] dark:text-white">
+                  Local Denylist ({denylist.length}) & Registry ({registryEntries.length})
                 </div>
-                <div className="space-y-1.5 max-h-40 overflow-y-auto text-[11px] font-mono">
+                <div className="space-y-2 max-h-44 overflow-y-auto text-[11px] font-mono">
                   {denylist.map((d) => (
                     <div
                       key={d.address}
-                      className="p-2 rounded bg-[#161b22] border border-[#21262d] flex items-start justify-between gap-2"
+                      className="p-2.5 rounded-xl bg-white dark:bg-[#1c1c1e] flex items-start justify-between gap-2 min-w-0"
                     >
                       <div className="min-w-0">
-                        <div className="text-rose-300 truncate">{d.address}</div>
-                        <div className="text-[#8b949e]">[LOCAL] {d.reason}</div>
+                        <div className="text-[#c92a22] dark:text-[#ff6961] truncate" title={d.address}>
+                          {shortAddress(d.address)}
+                        </div>
+                        <div className="text-[#59595e] dark:text-[#98989d] break-words">
+                          [LOCAL] {d.reason}
+                        </div>
                       </div>
                       {ownerSignerConfigured && vaultContractId && (
                         <button
+                          type="button"
                           disabled={actionBusy}
                           onClick={() =>
                             runOwnerAction(async () => {
@@ -387,12 +413,14 @@ export const ControlCenter: React.FC<ControlCenterProps> = ({
                               });
                               setActionMsg({
                                 ok: out.success,
-                                text: out.success ? `Removed ${d.address} from denylist.` : out.failureReason || 'Remove failed',
+                                text: out.success
+                                  ? `Removed ${d.address} from denylist.`
+                                  : out.failureReason || 'Remove failed',
                                 nearUrl: out.explorerUrl || undefined,
                               });
                             })
                           }
-                          className="shrink-0 text-[10px] px-1.5 py-0.5 rounded bg-[#21262d] hover:bg-[#30363d] text-[#c9d1d9]"
+                          className="shrink-0 text-[10px] px-2.5 py-1 rounded-full bg-[#f5f5f7] hover:bg-black/[0.08] dark:bg-[#2c2c2e] dark:hover:bg-[#3a3a3c] text-[#1d1d1f] dark:text-white"
                         >
                           Remove
                         </button>
@@ -400,27 +428,33 @@ export const ControlCenter: React.FC<ControlCenterProps> = ({
                     </div>
                   ))}
                   {registryEntries.map((r) => (
-                    <div key={r.address} className="p-2 rounded bg-[#161b22] border border-[#21262d]">
-                      <div className="text-amber-300 truncate">{r.address}</div>
-                      <div className="text-[#8b949e]">
+                    <div key={r.address} className="p-2.5 rounded-xl bg-white dark:bg-[#1c1c1e] min-w-0">
+                      <div className="text-amber-700 dark:text-amber-300 truncate" title={r.address}>
+                        {shortAddress(r.address)}
+                      </div>
+                      <div className="text-[#59595e] dark:text-[#98989d] break-words">
                         [REGISTRY:{r.category}] {r.reason}
                       </div>
                     </div>
                   ))}
                   {denylist.length === 0 && registryEntries.length === 0 && (
-                    <div className="text-[#8b949e]">No denylisted addresses.</div>
+                    <div className="text-[#59595e] dark:text-[#98989d]">No denylisted addresses.</div>
                   )}
                 </div>
 
                 {ownerSignerConfigured && vaultContractId && (
-                  <div className="pt-2 border-t border-[#21262d] flex gap-1.5">
+                  <div className="pt-2 border-t border-black/[0.06] dark:border-white/[0.08] flex gap-1.5 min-w-0">
                     <input
+                      id="walp-deny-addr"
+                      name="denyAddress"
+                      aria-label="Address to add to local denylist"
                       value={newDenyAddr}
                       onChange={(e) => setNewDenyAddr(e.target.value)}
                       placeholder="0x... address"
-                      className="flex-1 bg-[#161b22] border border-[#30363d] rounded px-2 py-1 text-[11px] font-mono text-white"
+                      className="flex-1 min-w-0 min-h-[36px] bg-white dark:bg-[#1c1c1e] border border-black/[0.07] dark:border-white/[0.08] rounded-xl px-2.5 py-1 text-[11px] font-mono text-[#1d1d1f] dark:text-white"
                     />
                     <button
+                      type="button"
                       disabled={actionBusy || !newDenyAddr.trim()}
                       onClick={() =>
                         runOwnerAction(async () => {
@@ -432,13 +466,15 @@ export const ControlCenter: React.FC<ControlCenterProps> = ({
                           });
                           setActionMsg({
                             ok: out.success,
-                            text: out.success ? `Added ${newDenyAddr.trim()} to denylist.` : out.failureReason || 'Deny failed',
+                            text: out.success
+                              ? `Added ${newDenyAddr.trim()} to denylist.`
+                              : out.failureReason || 'Deny failed',
                             nearUrl: out.explorerUrl || undefined,
                           });
                           setNewDenyAddr('');
                         })
                       }
-                      className="px-2.5 py-1 rounded bg-[#21262d] hover:bg-[#30363d] text-[11px] text-white"
+                      className="shrink-0 px-3 py-1 rounded-xl bg-[#1d1d1f] dark:bg-[#f5f5f7] text-white dark:text-[#1d1d1f] text-[11px] font-semibold disabled:opacity-45"
                     >
                       Deny
                     </button>
@@ -446,22 +482,25 @@ export const ControlCenter: React.FC<ControlCenterProps> = ({
                 )}
               </div>
 
-              <div className="bg-[#0d1117] border border-[#21262d] rounded-lg p-3.5 space-y-2.5">
-                <div className="text-xs font-semibold text-white">
+              <div className="rounded-2xl bg-[#f5f5f7] dark:bg-[#2c2c2e] p-4 space-y-3 min-w-0">
+                <div className="text-xs font-semibold text-[#1d1d1f] dark:text-white">
                   Contract Allowlist ({allowlist.length})
                 </div>
-                <div className="space-y-1.5 max-h-40 overflow-y-auto text-[11px] font-mono">
+                <div className="space-y-2 max-h-44 overflow-y-auto text-[11px] font-mono">
                   {allowlist.map((a) => (
                     <div
                       key={a.address}
-                      className="p-2 rounded bg-[#161b22] border border-[#21262d] flex items-start justify-between gap-2"
+                      className="p-2.5 rounded-xl bg-white dark:bg-[#1c1c1e] flex items-start justify-between gap-2 min-w-0"
                     >
                       <div className="min-w-0">
-                        <div className="text-[#00ec97] truncate">{a.address}</div>
-                        <div className="text-[#8b949e]">{a.label}</div>
+                        <div className="text-[#146c32] dark:text-[#30d158] truncate" title={a.address}>
+                          {shortAddress(a.address)}
+                        </div>
+                        <div className="text-[#59595e] dark:text-[#98989d] break-words">{a.label}</div>
                       </div>
                       {ownerSignerConfigured && vaultContractId && (
                         <button
+                          type="button"
                           disabled={actionBusy}
                           onClick={() =>
                             runOwnerAction(async () => {
@@ -472,12 +511,14 @@ export const ControlCenter: React.FC<ControlCenterProps> = ({
                               });
                               setActionMsg({
                                 ok: out.success,
-                                text: out.success ? `Removed ${a.address} from allowlist.` : out.failureReason || 'Remove failed',
+                                text: out.success
+                                  ? `Removed ${a.address} from allowlist.`
+                                  : out.failureReason || 'Remove failed',
                                 nearUrl: out.explorerUrl || undefined,
                               });
                             })
                           }
-                          className="shrink-0 text-[10px] px-1.5 py-0.5 rounded bg-[#21262d] hover:bg-[#30363d] text-[#c9d1d9]"
+                          className="shrink-0 text-[10px] px-2.5 py-1 rounded-full bg-[#f5f5f7] hover:bg-black/[0.08] dark:bg-[#2c2c2e] dark:hover:bg-[#3a3a3c] text-[#1d1d1f] dark:text-white"
                         >
                           Remove
                         </button>
@@ -485,21 +526,25 @@ export const ControlCenter: React.FC<ControlCenterProps> = ({
                     </div>
                   ))}
                   {allowlist.length === 0 && (
-                    <div className="text-[#8b949e]">
+                    <div className="text-[#59595e] dark:text-[#98989d] leading-relaxed">
                       Empty — non-empty contract calls escalate to Owner.
                     </div>
                   )}
                 </div>
 
                 {ownerSignerConfigured && vaultContractId && (
-                  <div className="pt-2 border-t border-[#21262d] flex gap-1.5">
+                  <div className="pt-2 border-t border-black/[0.06] dark:border-white/[0.08] flex gap-1.5 min-w-0">
                     <input
+                      id="walp-allow-addr"
+                      name="allowAddress"
+                      aria-label="Contract address to allowlist"
                       value={newAllowAddr}
                       onChange={(e) => setNewAllowAddr(e.target.value)}
                       placeholder="0x... contract"
-                      className="flex-1 bg-[#161b22] border border-[#30363d] rounded px-2 py-1 text-[11px] font-mono text-white"
+                      className="flex-1 min-w-0 min-h-[36px] bg-white dark:bg-[#1c1c1e] border border-black/[0.07] dark:border-white/[0.08] rounded-xl px-2.5 py-1 text-[11px] font-mono text-[#1d1d1f] dark:text-white"
                     />
                     <button
+                      type="button"
                       disabled={actionBusy || !newAllowAddr.trim()}
                       onClick={() =>
                         runOwnerAction(async () => {
@@ -511,13 +556,15 @@ export const ControlCenter: React.FC<ControlCenterProps> = ({
                           });
                           setActionMsg({
                             ok: out.success,
-                            text: out.success ? `Added ${newAllowAddr.trim()} to allowlist.` : out.failureReason || 'Allow failed',
+                            text: out.success
+                              ? `Added ${newAllowAddr.trim()} to allowlist.`
+                              : out.failureReason || 'Allow failed',
                             nearUrl: out.explorerUrl || undefined,
                           });
                           setNewAllowAddr('');
                         })
                       }
-                      className="px-2.5 py-1 rounded bg-[#21262d] hover:bg-[#30363d] text-[11px] text-white"
+                      className="shrink-0 px-3 py-1 rounded-xl bg-[#1d1d1f] dark:bg-[#f5f5f7] text-white dark:text-[#1d1d1f] text-[11px] font-semibold disabled:opacity-45"
                     >
                       Allow
                     </button>
@@ -532,29 +579,32 @@ export const ControlCenter: React.FC<ControlCenterProps> = ({
         {tab === 'queue' && (
           <div className="space-y-3">
             {pendingIntents.length === 0 ? (
-              <div className="text-xs text-[#8b949e] bg-[#0d1117] border border-[#21262d] rounded-lg p-6 text-center">
+              <div className="text-xs text-[#59595e] dark:text-[#98989d] bg-[#f5f5f7] dark:bg-[#2c2c2e] rounded-2xl p-6 text-center leading-relaxed">
                 No intents waiting for Owner approval. Intents above{' '}
-                <span className="font-mono text-white">approval_threshold_wei</span> or unallowlisted contract calls appear here.
+                <span className="font-mono text-[#1d1d1f] dark:text-white">approval_threshold_wei</span> or unallowlisted contract calls appear here.
               </div>
             ) : (
               pendingIntents.map((intent) => (
                 <div
                   key={intent.intent_id}
-                  className="bg-[#0d1117] border border-[#21262d] rounded-lg p-3.5 space-y-2 text-xs font-mono"
+                  className="bg-[#f5f5f7] dark:bg-[#2c2c2e] rounded-2xl p-4 space-y-2.5 text-xs font-mono min-w-0"
                 >
-                  <div className="flex items-center justify-between">
-                    <span className="text-white font-semibold">
+                  <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-1">
+                    <span className="text-[#1d1d1f] dark:text-white font-semibold">
                       {intent.intent_id} · {formatWeiToEth(intent.value_wei)} ETH
                     </span>
-                    <span className="text-amber-300">{intent.reason_code}</span>
+                    <span className="text-amber-700 dark:text-amber-300">{intent.reason_code}</span>
                   </div>
-                  <div className="text-[#8b949e] break-all">
+                  <div className="text-[#59595e] dark:text-[#98989d] break-all">
                     To: {intent.to} | Chain: {intent.chain_id} | Selector: {intent.calldata_selector}
                   </div>
-                  <div className="text-[#8b949e] break-all">Sighash: 0x{intent.sighash_hex}</div>
+                  <div className="text-[#59595e] dark:text-[#98989d] break-all">
+                    Sighash: 0x{intent.sighash_hex}
+                  </div>
                   {ownerSignerConfigured ? (
-                    <div className="flex items-center space-x-2 pt-1">
+                    <div className="flex flex-col sm:flex-row items-stretch sm:items-center gap-2 pt-1">
                       <button
+                        type="button"
                         disabled={actionBusy}
                         onClick={() =>
                           runOwnerAction(async () => {
@@ -579,12 +629,13 @@ export const ControlCenter: React.FC<ControlCenterProps> = ({
                             });
                           })
                         }
-                        className="px-3 py-1.5 rounded bg-[#00ec97] text-black font-semibold flex items-center space-x-1"
+                        className="min-h-[40px] px-4 py-2 rounded-full bg-[#34c759] hover:bg-[#2eb350] text-white dark:text-black font-semibold inline-flex items-center justify-center gap-1.5"
                       >
                         <CheckCircle2 className="w-3.5 h-3.5" />
                         <span>Approve & MPC Sign</span>
                       </button>
                       <button
+                        type="button"
                         disabled={actionBusy}
                         onClick={() =>
                           runOwnerAction(async () => {
@@ -603,14 +654,14 @@ export const ControlCenter: React.FC<ControlCenterProps> = ({
                             });
                           })
                         }
-                        className="px-3 py-1.5 rounded bg-rose-950 border border-rose-800 text-rose-200 flex items-center space-x-1"
+                        className="min-h-[40px] px-4 py-2 rounded-full bg-[#ff3b30]/12 hover:bg-[#ff3b30]/20 text-[#c92a22] dark:text-[#ff6961] font-semibold inline-flex items-center justify-center gap-1.5"
                       >
                         <XCircle className="w-3.5 h-3.5" />
                         <span>Reject</span>
                       </button>
                     </div>
                   ) : (
-                    <div className="text-[11px] text-amber-300">
+                    <div className="text-[11px] text-amber-700 dark:text-amber-300">
                       Configure NEAR_OWNER_PRIVATE_KEY in .env or call{' '}
                       <code>approve_intent</code> / <code>reject_intent</code> via NEAR CLI.
                     </div>
@@ -623,21 +674,25 @@ export const ControlCenter: React.FC<ControlCenterProps> = ({
 
         {/* TAB 3: 1CLICK INTENTS QUOTE */}
         {tab === 'intents' && (
-          <div className="space-y-3 text-xs">
-            <div className="p-2.5 rounded bg-[#0d1117] border border-[#21262d] text-[#8b949e] flex items-center justify-between">
+          <div className="space-y-3.5 text-xs min-w-0">
+            <div className="p-3 rounded-2xl bg-[#f5f5f7] dark:bg-[#2c2c2e] text-[#59595e] dark:text-[#98989d] flex flex-col sm:flex-row sm:items-center justify-between gap-2">
               <span>
-                1Click Dry-Run Quote Mode (<code className="text-[#c9d1d9]">dry: true</code> — mainnet route simulation per HACKATHON.md Q-007)
+                1Click Dry-Run Quote Mode (<code className="font-mono text-[#1d1d1f] dark:text-white">dry: true</code>)
               </span>
-              <span className="font-mono text-[#00ec97]">{tokens.length} Tokens</span>
+              <span className="font-mono font-semibold text-[#146c32] dark:text-[#30d158] shrink-0">
+                {tokens.length} Tokens
+              </span>
             </div>
 
             <div className="grid grid-cols-1 sm:grid-cols-2 gap-3 font-mono">
-              <div>
-                <label className="text-[#8b949e] block mb-1">Origin Asset</label>
+              <div className="min-w-0">
+                <label htmlFor="walp-origin-asset" className="text-[#59595e] dark:text-[#98989d] block mb-1">Origin Asset</label>
                 <select
+                  id="walp-origin-asset"
+                  name="originAsset"
                   value={originAsset}
                   onChange={(e) => setOriginAsset(e.target.value)}
-                  className="w-full bg-[#0d1117] border border-[#30363d] rounded px-2.5 py-1.5 text-white"
+                  className="w-full min-h-[40px] bg-[#f5f5f7] dark:bg-[#2c2c2e] border border-black/[0.07] dark:border-white/[0.08] rounded-xl px-3 py-2 text-[#1d1d1f] dark:text-white"
                 >
                   {(tokens.length > 0 ? tokens : [{ assetId: 'nep141:wrap.near', symbol: 'wNEAR', blockchain: 'near', decimals: 24 }]).map((t) => (
                     <option key={t.assetId} value={t.assetId}>
@@ -646,12 +701,14 @@ export const ControlCenter: React.FC<ControlCenterProps> = ({
                   ))}
                 </select>
               </div>
-              <div>
-                <label className="text-[#8b949e] block mb-1">Destination Asset</label>
+              <div className="min-w-0">
+                <label htmlFor="walp-dest-asset" className="text-[#59595e] dark:text-[#98989d] block mb-1">Destination Asset</label>
                 <select
+                  id="walp-dest-asset"
+                  name="destAsset"
                   value={destAsset}
                   onChange={(e) => setDestAsset(e.target.value)}
-                  className="w-full bg-[#0d1117] border border-[#30363d] rounded px-2.5 py-1.5 text-white"
+                  className="w-full min-h-[40px] bg-[#f5f5f7] dark:bg-[#2c2c2e] border border-black/[0.07] dark:border-white/[0.08] rounded-xl px-3 py-2 text-[#1d1d1f] dark:text-white"
                 >
                   {(tokens.length > 0 ? tokens : [{ assetId: 'nep141:eth.omft.near', symbol: 'ETH', blockchain: 'eth', decimals: 18 }]).map((t) => (
                     <option key={t.assetId} value={t.assetId}>
@@ -660,20 +717,24 @@ export const ControlCenter: React.FC<ControlCenterProps> = ({
                   ))}
                 </select>
               </div>
-              <div>
-                <label className="text-[#8b949e] block mb-1">Atomic Amount (e.g. 1e24 = 1 wNEAR)</label>
+              <div className="min-w-0">
+                <label htmlFor="walp-1click-amount" className="text-[#59595e] dark:text-[#98989d] block mb-1">Atomic Amount (1e24 = 1 wNEAR)</label>
                 <input
+                  id="walp-1click-amount"
+                  name="amountRaw"
                   value={amountRaw}
                   onChange={(e) => setAmountRaw(e.target.value)}
-                  className="w-full bg-[#0d1117] border border-[#30363d] rounded px-2.5 py-1.5 text-white"
+                  className="w-full min-h-[40px] bg-[#f5f5f7] dark:bg-[#2c2c2e] border border-black/[0.07] dark:border-white/[0.08] rounded-xl px-3 py-2 text-[#1d1d1f] dark:text-white"
                 />
               </div>
-              <div>
-                <label className="text-[#8b949e] block mb-1">Destination Recipient</label>
+              <div className="min-w-0">
+                <label htmlFor="walp-1click-recipient" className="text-[#59595e] dark:text-[#98989d] block mb-1">Destination Recipient</label>
                 <input
+                  id="walp-1click-recipient"
+                  name="recipientAddr"
                   value={recipientAddr}
                   onChange={(e) => setRecipientAddr(e.target.value)}
-                  className="w-full bg-[#0d1117] border border-[#30363d] rounded px-2.5 py-1.5 text-white"
+                  className="w-full min-h-[40px] bg-[#f5f5f7] dark:bg-[#2c2c2e] border border-black/[0.07] dark:border-white/[0.08] rounded-xl px-3 py-2 text-[#1d1d1f] dark:text-white"
                 />
               </div>
             </div>
@@ -697,33 +758,33 @@ export const ControlCenter: React.FC<ControlCenterProps> = ({
                   setQuoteError(err instanceof Error ? err.message : String(err));
                 }
               }}
-              className="px-4 py-2 rounded-lg bg-[#00ec97] hover:bg-[#00d688] text-black font-semibold flex items-center space-x-1.5"
+              className="w-full sm:w-auto min-h-[44px] px-5 py-2.5 rounded-2xl bg-[#1d1d1f] hover:bg-black dark:bg-[#00ec97] dark:hover:bg-[#00d688] text-white dark:text-black font-semibold inline-flex items-center justify-center gap-2 transition-colors"
             >
               <ArrowRightLeft className="w-3.5 h-3.5" />
               <span>Fetch Live 1Click Dry Quote</span>
             </button>
 
             {quoteError && (
-              <div className="p-2.5 rounded bg-rose-950/40 border border-rose-800 text-rose-200 font-mono">
+              <div className="p-3 rounded-2xl bg-[#ff3b30]/10 border border-[#ff3b30]/25 text-[#c92a22] dark:text-[#ff8a80] font-mono break-words">
                 {quoteError}
               </div>
             )}
 
             {quote && (
-              <div className="bg-[#0d1117] border border-[#00ec97]/40 rounded-lg p-3.5 font-mono space-y-1.5">
-                <div className="flex justify-between text-white font-semibold">
+              <div className="rounded-2xl bg-[#34c759]/[0.08] border border-[#34c759]/30 p-4 font-mono space-y-1.5 min-w-0">
+                <div className="flex flex-wrap justify-between gap-2 text-[#1d1d1f] dark:text-white font-semibold">
                   <span>
                     {quote.quote.amountInFormatted} → {quote.quote.amountOutFormatted}
                   </span>
-                  <span className="text-[#00ec97]">~{quote.quote.timeEstimate ?? 30}s</span>
+                  <span className="text-[#146c32] dark:text-[#30d158]">~{quote.quote.timeEstimate ?? 30}s</span>
                 </div>
-                <div className="text-[#8b949e]">
+                <div className="text-[#59595e] dark:text-[#98989d] break-words">
                   Min Out: {quote.quote.minAmountOut} | USD: ${quote.quote.amountInUsd || '?'} → $
                   {quote.quote.amountOutUsd || '?'}
                 </div>
-                <div className="text-[#8b949e]">
+                <div className="text-[#59595e] dark:text-[#98989d]">
                   Policy Slippage Check:{' '}
-                  <span className={quote.policyCheck.passed ? 'text-[#00ec97]' : 'text-amber-300'}>
+                  <span className={quote.policyCheck.passed ? 'text-[#146c32] dark:text-[#30d158] font-semibold' : 'text-amber-600 dark:text-amber-300'}>
                     {quote.policyCheck.passed ? 'PASS' : quote.policyCheck.warnings.join('; ')}
                   </span>
                 </div>
@@ -734,43 +795,45 @@ export const ControlCenter: React.FC<ControlCenterProps> = ({
 
         {/* TAB 4: AUDIT & RECEIPTS */}
         {tab === 'audit' && (
-          <div className="space-y-2.5">
+          <div className="space-y-2.5 min-w-0">
             {activityRecords.length === 0 ? (
-              <div className="text-xs text-[#8b949e] bg-[#0d1117] border border-[#21262d] rounded-lg p-6 text-center">
+              <div className="text-xs text-[#59595e] dark:text-[#98989d] bg-[#f5f5f7] dark:bg-[#2c2c2e] rounded-2xl p-6 text-center">
                 Execute an intent or attack test in the Console to view real NearBlocks & Etherscan proofs.
               </div>
             ) : (
               activityRecords.map((rec) => (
                 <div
                   key={rec.id}
-                  className="bg-[#0d1117] border border-[#21262d] rounded-lg p-3 text-xs font-mono space-y-1"
+                  className="rounded-2xl bg-[#f5f5f7] dark:bg-[#2c2c2e] p-3.5 text-xs font-mono space-y-1.5 min-w-0"
                 >
-                  <div className="flex items-center justify-between">
+                  <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-1 min-w-0">
                     <span
-                      className={
+                      className={`font-semibold break-all ${
                         rec.outcomeStatus === 'SIGNED'
-                          ? 'text-[#00ec97] font-semibold'
+                          ? 'text-[#146c32] dark:text-[#30d158]'
                           : rec.outcomeStatus === 'PENDING_APPROVAL'
-                            ? 'text-amber-300 font-semibold'
-                            : 'text-rose-300 font-semibold'
-                      }
+                            ? 'text-amber-700 dark:text-amber-300'
+                            : 'text-[#c92a22] dark:text-[#ff6961]'
+                      }`}
                     >
                       {rec.outcomeStatus} ({rec.reasonCode})
                     </span>
-                    <span className="text-[#8b949e]">
+                    <span className="text-[#59595e] dark:text-[#98989d] shrink-0 text-[11px]">
                       {new Date(rec.timestamp).toLocaleTimeString()}
                     </span>
                   </div>
-                  <div className="text-[#c9d1d9] truncate">{rec.prompt}</div>
-                  <div className="flex flex-wrap items-center gap-3 text-[11px] text-[#8b949e]">
-                    <span>To: {rec.toAddress}</span>
+                  <div className="text-[#1d1d1f] dark:text-[#f5f5f7] line-clamp-2 break-words">
+                    {rec.prompt}
+                  </div>
+                  <div className="flex flex-wrap items-center gap-x-3 gap-y-1 text-[11px] text-[#59595e] dark:text-[#98989d]">
+                    <span title={rec.toAddress}>To: {shortAddress(rec.toAddress)}</span>
                     <span>Value: {rec.amountEth} ETH</span>
                     {rec.nearExplorerUrl && (
                       <a
                         href={rec.nearExplorerUrl}
                         target="_blank"
                         rel="noreferrer"
-                        className="text-[#00ec97] hover:underline inline-flex items-center space-x-1"
+                        className="text-[#005bb8] dark:text-[#0a84ff] hover:underline inline-flex items-center gap-1"
                       >
                         <span>NearBlocks</span>
                         <ExternalLink className="w-3 h-3" />
@@ -781,7 +844,7 @@ export const ControlCenter: React.FC<ControlCenterProps> = ({
                         href={rec.sepoliaExplorerUrl}
                         target="_blank"
                         rel="noreferrer"
-                        className="text-[#00ec97] hover:underline inline-flex items-center space-x-1"
+                        className="text-[#005bb8] dark:text-[#0a84ff] hover:underline inline-flex items-center gap-1"
                       >
                         <span>Etherscan</span>
                         <ExternalLink className="w-3 h-3" />
@@ -794,6 +857,6 @@ export const ControlCenter: React.FC<ControlCenterProps> = ({
           </div>
         )}
       </div>
-    </div>
+    </section>
   );
 };

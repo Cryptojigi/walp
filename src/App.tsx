@@ -1,6 +1,7 @@
 import React, { useCallback, useEffect, useState } from 'react';
 import { formatEther } from 'ethers';
-import { Navbar } from './components/Navbar';
+import { Navbar, AppView, ThemeMode } from './components/Navbar';
+import { LandingOverview } from './components/LandingOverview';
 import { AccountCard } from './components/AccountCard';
 import { IntentConsole } from './components/IntentConsole';
 import { ControlCenter } from './components/ControlCenter';
@@ -21,6 +22,7 @@ import { AlertTriangle, Terminal } from 'lucide-react';
 const STORAGE_CONTRACT_KEY = 'walp_vault_contract_id';
 const STORAGE_PATH_KEY = 'walp_derivation_path';
 const STORAGE_ACTIVITY_KEY = 'walp_activity_records_v2';
+const STORAGE_THEME_KEY = 'walp_theme_mode';
 
 function extractReasonCode(outcome: NearCallOutcome): string {
   if (outcome.result?.reason_code) {
@@ -50,6 +52,15 @@ function classifyOutcome(
 }
 
 export function App() {
+  const [theme, setTheme] = useState<ThemeMode>(() => {
+    const saved = localStorage.getItem(STORAGE_THEME_KEY);
+    return saved === 'dark' ? 'dark' : 'light';
+  });
+  const [activeView, setActiveView] = useState<AppView>(() =>
+    window.location.hash === '#console' ? 'console' : 'overview'
+  );
+  const [pendingPresetId, setPendingPresetId] = useState<string | null>(null);
+
   const [health, setHealth] = useState<ServerHealth | null>(null);
   const [models, setModels] = useState<NearAiModelInfo[]>([]);
   const [vaultContractId, setVaultContractId] = useState<string>(
@@ -72,6 +83,29 @@ export function App() {
     }
     return [];
   });
+
+  useEffect(() => {
+    const root = document.documentElement;
+    if (theme === 'dark') {
+      root.classList.add('dark');
+    } else {
+      root.classList.remove('dark');
+    }
+    localStorage.setItem(STORAGE_THEME_KEY, theme);
+  }, [theme]);
+
+  const handleChangeView = (view: AppView) => {
+    setActiveView(view);
+    window.history.replaceState(null, '', view === 'console' ? '#console' : '#overview');
+    window.scrollTo({ top: 0, behavior: 'smooth' });
+  };
+
+  const handleOpenConsole = (presetId?: string) => {
+    if (presetId) {
+      setPendingPresetId(presetId);
+    }
+    handleChangeView('console');
+  };
 
   const refreshVault = useCallback(
     async (targetContractId?: string, targetPath?: string) => {
@@ -238,90 +272,100 @@ export function App() {
     vaultStatus?.contractId || vaultContractId || health?.vaultContractId || '';
 
   return (
-    <div className="min-h-screen bg-[#0d1117] text-[#e6edf3] flex flex-col">
+    <div className="min-h-screen bg-[#f5f5f7] text-[#1d1d1f] dark:bg-black dark:text-[#f5f5f7] flex flex-col overflow-x-hidden">
       <Navbar
         vaultContractId={activeContractId}
         paused={Boolean(vaultStatus?.policy?.paused)}
         nearAiConfigured={Boolean(health?.nearAiConfigured)}
+        activeView={activeView}
+        onChangeView={handleChangeView}
+        theme={theme}
+        onToggleTheme={() => setTheme((prev) => (prev === 'dark' ? 'light' : 'dark'))}
         onOpenConfigModal={() => setIsConfigOpen(true)}
       />
 
-      <main className="flex-1 max-w-7xl w-full mx-auto px-4 sm:px-6 lg:px-8 py-6 space-y-6">
+      <main className="flex-1 max-w-6xl w-full mx-auto px-4 sm:px-6 lg:px-8 py-6 space-y-6 min-w-0">
         {serverError && (
-          <div className="bg-red-950/30 border border-red-700/50 rounded-xl p-4 flex items-start space-x-3 text-xs text-red-200">
-            <AlertTriangle className="w-4 h-4 text-red-400 shrink-0 mt-0.5" />
-            <div>
-              <p className="font-semibold text-red-300">Backend Server Notice</p>
-              <p className="mt-0.5 text-red-200/80">{serverError}</p>
+          <div className="rounded-2xl bg-[#ff3b30]/10 border border-[#ff3b30]/25 p-4 flex items-start gap-3 text-xs text-[#c92a22] dark:text-[#ff8a80]">
+            <AlertTriangle className="w-4 h-4 shrink-0 mt-0.5" />
+            <div className="min-w-0">
+              <p className="font-semibold">Backend Server Notice</p>
+              <p className="mt-0.5 opacity-90 break-words">{serverError}</p>
             </div>
           </div>
         )}
 
         {!activeContractId && !serverError && (
-          <div className="bg-amber-950/20 border border-amber-700/40 rounded-xl p-4 flex items-start space-x-3 text-xs text-amber-200">
-            <Terminal className="w-4 h-4 text-amber-400 shrink-0 mt-0.5" />
-            <div className="space-y-1">
-              <p className="font-semibold text-amber-300">
-                No Deployed Vault Contract Selected
-              </p>
-              <p className="text-amber-200/80">
-                Set <code className="font-mono bg-[#0d1117] px-1 py-0.5 rounded">WALP_VAULT_CONTRACT_ID</code> in <code className="font-mono bg-[#0d1117] px-1 py-0.5 rounded">.env</code> or click <strong className="text-white">Vault Config</strong> above. Offline verification runs without credentials via <code className="font-mono bg-[#0d1117] px-1 py-0.5 rounded">cargo test --test sandbox_redteam</code>.
+          <div className="rounded-2xl bg-amber-500/10 border border-amber-500/25 p-4 flex items-start gap-3 text-xs text-amber-800 dark:text-amber-300">
+            <Terminal className="w-4 h-4 shrink-0 mt-0.5" />
+            <div className="space-y-1 min-w-0">
+              <p className="font-semibold">No Deployed Vault Contract Selected</p>
+              <p className="opacity-90 break-words">
+                Set <code className="font-mono px-1 py-0.5 rounded bg-black/[0.06] dark:bg-white/[0.1]">WALP_VAULT_CONTRACT_ID</code> in <code className="font-mono px-1 py-0.5 rounded bg-black/[0.06] dark:bg-white/[0.1]">.env</code> or tap Vault Config above.
               </p>
             </div>
           </div>
         )}
 
-        <AccountCard
-          vaultContractId={activeContractId}
-          nearBalance={vaultStatus?.nearBalance || '0'}
-          ethAddress={vaultStatus?.ethAddress || ''}
-          ethBalance={vaultStatus?.ethBalance || '0'}
-          path={path}
-          onPathChange={handlePathChange}
-          onRefresh={() => void refreshVault()}
-          isRefreshing={isRefreshing}
-          deployed={Boolean(vaultStatus?.deployed)}
-        />
-
-        <div className="grid grid-cols-1 lg:grid-cols-12 gap-6 items-start">
-          <div className="lg:col-span-6">
-            <IntentConsole
-              derivedEthAddress={vaultStatus?.ethAddress || ''}
+        {activeView === 'overview' ? (
+          <LandingOverview onOpenConsole={handleOpenConsole} />
+        ) : (
+          <div className="space-y-6 min-w-0">
+            <AccountCard
               vaultContractId={activeContractId}
+              nearBalance={vaultStatus?.nearBalance || '0'}
+              ethAddress={vaultStatus?.ethAddress || ''}
+              ethBalance={vaultStatus?.ethBalance || '0'}
               path={path}
-              policy={vaultStatus?.policy || null}
-              models={models}
-              agentConfigured={Boolean(health?.agentAccountConfigured)}
-              onActivityLogged={handleActivityLogged}
-              onRefreshVault={() => void refreshVault()}
+              onPathChange={handlePathChange}
+              onRefresh={() => void refreshVault()}
+              isRefreshing={isRefreshing}
+              deployed={Boolean(vaultStatus?.deployed)}
             />
-          </div>
 
-          <div className="lg:col-span-6">
-            <ControlCenter
-              vaultContractId={activeContractId}
-              derivedEthAddress={vaultStatus?.ethAddress || ''}
-              policy={vaultStatus?.policy || null}
-              pendingIntents={vaultStatus?.pendingIntents || []}
-              denylist={vaultStatus?.denylist || []}
-              allowlist={vaultStatus?.allowlist || []}
-              registryEntries={vaultStatus?.registryEntries || []}
-              activityRecords={activityRecords}
-              ownerSignerConfigured={Boolean(health?.ownerSignerConfigured)}
-              onOwnerDecisionLogged={handleOwnerDecisionLogged}
-              onRefreshVault={() => void refreshVault()}
-            />
+            <div className="grid grid-cols-1 lg:grid-cols-12 gap-6 items-start">
+              <div className="lg:col-span-6 min-w-0">
+                <IntentConsole
+                  derivedEthAddress={vaultStatus?.ethAddress || ''}
+                  vaultContractId={activeContractId}
+                  path={path}
+                  policy={vaultStatus?.policy || null}
+                  models={models}
+                  agentConfigured={Boolean(health?.agentAccountConfigured)}
+                  initialPresetId={pendingPresetId}
+                  onPresetConsumed={() => setPendingPresetId(null)}
+                  onActivityLogged={handleActivityLogged}
+                  onRefreshVault={() => void refreshVault()}
+                />
+              </div>
+
+              <div className="lg:col-span-6 min-w-0">
+                <ControlCenter
+                  vaultContractId={activeContractId}
+                  derivedEthAddress={vaultStatus?.ethAddress || ''}
+                  policy={vaultStatus?.policy || null}
+                  pendingIntents={vaultStatus?.pendingIntents || []}
+                  denylist={vaultStatus?.denylist || []}
+                  allowlist={vaultStatus?.allowlist || []}
+                  registryEntries={vaultStatus?.registryEntries || []}
+                  activityRecords={activityRecords}
+                  ownerSignerConfigured={Boolean(health?.ownerSignerConfigured)}
+                  onOwnerDecisionLogged={handleOwnerDecisionLogged}
+                  onRefreshVault={() => void refreshVault()}
+                />
+              </div>
+            </div>
           </div>
-        </div>
+        )}
       </main>
 
-      <footer className="border-t border-[#21262d] bg-[#0d1117] py-4 px-4 sm:px-6 lg:px-8 text-xs text-[#8b949e]">
-        <div className="max-w-7xl mx-auto flex flex-col sm:flex-row items-start sm:items-center justify-between gap-2">
+      <footer className="border-t border-black/[0.06] dark:border-white/[0.08] py-5 px-4 sm:px-6 lg:px-8 text-xs text-[#59595e] dark:text-[#98989d]">
+        <div className="max-w-6xl mx-auto flex flex-col sm:flex-row items-start sm:items-center justify-between gap-2">
           <span>
-            Walp — Onchain NEAR Rust RLP Firewall + Chain Signatures (<code className="font-mono">v1.signer-prod.testnet</code>)
+            Walp — NEAR Rust RLP Firewall + Chain Signatures (<code className="font-mono">v1.signer-prod.testnet</code>)
           </span>
           <span className="font-mono">
-            AI: cloud-api.near.ai TEE • 1Click: dry-run quotes only • No browser private keys
+            AI: cloud-api.near.ai TEE · 1Click: dry-run quotes only
           </span>
         </div>
       </footer>
