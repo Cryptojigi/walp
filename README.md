@@ -198,7 +198,8 @@ Canonical reason codes: `WALP_PAUSED`, `WALP_RLP_INVALID`, `WALP_UNSUPPORTED_CHA
 
 ---
 
-## 7. Development Disclosure (Q-005 Compliance)
+## Development Disclosure (Q-005)
 
-This project was built during the hackathon window with heavy use of an AI coding assistant. All contract logic, the pure-Rust RLP decoder, the policy engine, the zero-Full-Access key architecture, and the red-team vectors were reviewed and verified against live NEAR Testnet and Ethereum Sepolia before submission.
+Third-party libraries and APIs are listed in section 6.  
+AI coding assistance was used during development; all on-chain logic, RLP decoding, policy enforcement, and red-team vectors were reviewed and verified against live NEAR Testnet and Sepolia before submission.
 
