@@ -13,7 +13,8 @@
     "test": "vitest run",
     "preview": "vite preview",
     "setup-vault": "tsx scripts/setup-scoped-key.ts",
-    "attack-demo": "tsx scripts/attack-demo.ts"
+    "attack-demo": "tsx scripts/attack-demo.ts",
+    "run-agent": "tsx agent/run-agent.ts"
   },
   "dependencies": {
     "@noble/curves": "^1.4.0",
