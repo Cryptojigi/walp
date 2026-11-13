@@ -195,3 +195,10 @@ Canonical reason codes: `WALP_PAUSED`, `WALP_RLP_INVALID`, `WALP_UNSUPPORTED_CHA
   - **NEAR AI Cloud TEE API** (`https://cloud-api.near.ai/v1/chat/completions`, `/v1/models`): Optional TEE-backed natural language intent parsing (default `Qwen/Qwen3.6-35B-A3B-FP8`); deterministic parser fallback runs automatically if `NEAR_AI_API_KEY` is unset.
   - **Ethereum Sepolia RPCs** (`https://ethereum-sepolia-rpc.publicnode.com`, `https://1rpc.io/sepolia`, `https://sepolia.drpc.org`): Counterparty bytecode check, nonces, gas estimates, and signed tx broadcast.
   - **NEAR 1Click Intents API** (`https://1click.chaindefuser.com/v0/tokens`, `/v0/quote`): Asset discovery and **mainnet `dry: true` quote previews only** (1Click has no testnet environment; quote requests are read-only previews and transfer zero funds).
+
+---
+
+## 7. Development Disclosure (Q-005 Compliance)
+
+This project was built during the hackathon window with heavy use of an AI coding assistant (Antigravity). All contract logic, the pure-Rust RLP decoder, the policy engine, the zero-Full-Access key architecture, and the red-team vectors were reviewed and verified against live NEAR Testnet and Ethereum Sepolia before submission.
+
