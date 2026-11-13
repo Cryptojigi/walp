@@ -142,6 +142,16 @@ npx tsx scripts/attack-demo.ts \
 - Vector 5 (`set_policy` privilege escalation): NEAR RPC rejection `InvalidAccessKeyError` / `MethodNameMismatch`.
 - Vector 6 (Amount between `approval_threshold_wei` and `max_tx_wei`): Succeeds with `status: "PENDING_APPROVAL"` and `EVENT_JSON` `IntentProposed` (`reason_code: "WALP_THRESHOLD_ESCALATED"`), confirming `v1.signer-prod.testnet` was NOT called (`https://testnet.nearblocks.io/txns/FEwbrTx7dwF8MWorJDCX6JFcVbwGcxsH42EzJPLKzMaD`).
 
+### Live Autonomous Agent SDK Execution Command
+
+Any external AI agent (ElizaOS, LangChain, or custom bot) can import `WalpAgentWallet` from `agent/connector.ts` to request policy-enforced EVM transfers with zero Ethereum private keys.
+
+**Do:**
+```bash
+npm run run-agent
+```
+**See:** Terminal connects to `walp-vault.walp-vault.testnet` using `agent.walp-vault.testnet`, demonstrates onchain attack rejection (5 ETH over cap, tx [BVwPeB69...](https://testnet.nearblocks.io/txns/BVwPeB69ybsNd9pYHcVeyAdSK3DMkaMawTFPu33Yz8fJ)), executes a compliant 0.0001 ETH transfer co-signed by `v1.signer-prod.testnet` (tx [J9eg81zV...](https://testnet.nearblocks.io/txns/J9eg81zVNBq9QVPAYxaQfWXpJy5ZnDSzaARpSHdjvNc7)), and broadcasts live to Ethereum Sepolia (tx [0x38e4c67b...](https://sepolia.etherscan.io/tx/0x38e4c67b034fa690a5276354efaa3b892fe62bff6e7fccc8753d7425bc7599d6)).
+
 ---
 
 ## 4. Run Local Console UI (Do X → See Y)
