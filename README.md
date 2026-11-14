@@ -1,5 +1,13 @@
 # Walp — Onchain NEAR RLP Policy Firewall for Chain Signatures & AI Agents
 
+[![Live Demo](https://img.shields.io/badge/Live_Demo-waalp.duckdns.org-00a86b?style=flat&logo=near)](https://waalp.duckdns.org)
+[![NEAR Hackathon 2026](https://img.shields.io/badge/Built_for-NEAR_Hackathon_2026-00EC97?style=flat&logo=near)](https://nearhackathon.com)
+[![GitHub](https://img.shields.io/badge/GitHub-Cryptojigi%2Fwalp-181717?style=flat&logo=github)](https://github.com/Cryptojigi/walp)
+
+> **Live Hosted Demo:** [https://waalp.duckdns.org](https://waalp.duckdns.org)  
+> **NEAR Testnet Vault:** [`walp-vault.walp-vault.testnet`](https://testnet.nearblocks.io/address/walp-vault.walp-vault.testnet)  
+> **Derived Sepolia MPC Address:** [`0xeB54A733E0c1A63d8bDb79dcb65DA9abf9e2566`](https://eth-sepolia.blockscout.com/address/0xeB54A733E0c1A63d8bDb79dcb65DA9abf9e2566)
+
 Walp constrains autonomous AI-proposed cross-chain EVM transactions inside a NEAR Rust smart contract (`walp-vault`) **before** `v1.signer-prod.testnet` will co-sign the secp256k1 payload, backed by a shared onchain address reputation registry (`walp-registry`) and protocol-level `FunctionCall`-only access keys.
 
 ## Architecture Overview
