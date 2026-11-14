@@ -534,7 +534,7 @@ async function pollNearTxFinality(
   }
 
   throw new Error(
-    `Timed out waiting for NEAR transaction finality (${txHash}): ${lastNote}. Check ${NEAR_EXPLORER_URL}/txns/${txHash}`
+    `Timed out waiting for NEAR transaction finality (${txHash}): ${lastNote}. Check ${NEAR_EXPLORER_URL}/tx/${txHash}`
   );
 }
 
@@ -558,7 +558,7 @@ export function parseNearOutcome<T = unknown>(
     return {
       success: false,
       txHash: resolvedTxHash,
-      explorerUrl: `${NEAR_EXPLORER_URL}/txns/${resolvedTxHash}`,
+      explorerUrl: `${NEAR_EXPLORER_URL}/tx/${resolvedTxHash}`,
       result: null,
       failureReason: JSON.stringify(statusObj.Failure),
       logs: allLogs,
@@ -577,7 +577,7 @@ export function parseNearOutcome<T = unknown>(
   return {
     success: true,
     txHash: resolvedTxHash,
-    explorerUrl: `${NEAR_EXPLORER_URL}/txns/${resolvedTxHash}`,
+    explorerUrl: `${NEAR_EXPLORER_URL}/tx/${resolvedTxHash}`,
     result: decodedResult,
     failureReason: null,
     logs: allLogs,

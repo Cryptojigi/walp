@@ -14,8 +14,8 @@ export const MPC_ROOT_PUBLIC_KEY =
   'secp256k1:4NfTiv3UsGahebgTaHyD9vF8KYKMBnfd6kh94mK6xv8fGBiJB8TBtFMP5WWXz6B89Ac1fbpzPwAvoyQebemHFwx3';
 
 export const SEPOLIA_CHAIN_ID = 11155111;
-export const SEPOLIA_EXPLORER_URL = 'https://sepolia.etherscan.io';
-export const NEAR_EXPLORER_URL = 'https://testnet.nearblocks.io';
+export const SEPOLIA_EXPLORER_URL = 'https://eth-sepolia.blockscout.com';
+export const NEAR_EXPLORER_URL = 'https://testnet.near.rocks';
 
 export const NEAR_AI_BASE_URL = 'https://cloud-api.near.ai/v1';
 export const NEAR_AI_DEFAULT_MODEL = 'Qwen/Qwen3.6-35B-A3B-FP8';

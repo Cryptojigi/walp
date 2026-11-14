@@ -253,7 +253,7 @@ export async function parseIntentWithNearAi(params: {
         Authorization: `Bearer ${cfg.nearAiApiKey}`,
       },
       body: JSON.stringify(body),
-      signal: AbortSignal.timeout(20_000),
+      signal: AbortSignal.timeout(60_000),
     });
 
     if (!res.ok) {
