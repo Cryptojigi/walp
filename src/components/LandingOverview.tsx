@@ -74,13 +74,13 @@ export const LandingOverview: React.FC<LandingOverviewProps> = ({
             <div className="w-10 h-10 rounded-2xl bg-[#f5f5f7] dark:bg-[#2c2c2e] flex items-center justify-center">
               <Sparkles className="w-5 h-5 text-[#005bb8] dark:text-[#0a84ff]" />
             </div>
-            <div className="text-xs font-mono text-[#59595e] dark:text-[#98989d]">STEP 01</div>
-            <h3 className="text-lg font-semibold text-[#1d1d1f] dark:text-white">
+            <div className="text-xs font-mono font-semibold text-[#59595e] dark:text-[#98989d]">STEP 01</div>
+            <h3 className="text-lg sm:text-xl font-semibold text-[#1d1d1f] dark:text-white">
               Untrusted AI Intent
             </h3>
-            <p className="text-sm text-[#59595e] dark:text-[#98989d] leading-relaxed">
+            <p className="text-sm sm:text-base text-[#59595e] dark:text-[#98989d] leading-relaxed">
               NEAR AI Cloud TEE turns natural language into unsigned EIP-1559 bytes. The agent holds only a scoped{' '}
-              <code className="font-mono text-xs text-[#1d1d1f] dark:text-white">FunctionCall</code> key with zero Full-Access keys.
+              <code className="font-mono text-xs px-1.5 py-0.5 rounded bg-black/[0.05] dark:bg-white/[0.08] text-[#1d1d1f] dark:text-white">FunctionCall</code> key with zero Full-Access keys.
             </p>
           </div>
 
@@ -88,13 +88,13 @@ export const LandingOverview: React.FC<LandingOverviewProps> = ({
             <div className="w-10 h-10 rounded-2xl bg-[#f5f5f7] dark:bg-[#2c2c2e] flex items-center justify-center">
               <Lock className="w-5 h-5 text-[#146c32] dark:text-[#30d158]" />
             </div>
-            <div className="text-xs font-mono text-[#59595e] dark:text-[#98989d]">STEP 02</div>
-            <h3 className="text-lg font-semibold text-[#1d1d1f] dark:text-white">
+            <div className="text-xs font-mono font-semibold text-[#59595e] dark:text-[#98989d]">STEP 02</div>
+            <h3 className="text-lg sm:text-xl font-semibold text-[#1d1d1f] dark:text-white">
               Onchain RLP Firewall
             </h3>
-            <p className="text-sm text-[#59595e] dark:text-[#98989d] leading-relaxed">
+            <p className="text-sm sm:text-base text-[#59595e] dark:text-[#98989d] leading-relaxed">
               The vault ignores text summaries, decodes raw RLP bytes in Rust, blocks unlimited{' '}
-              <code className="font-mono text-xs text-[#1d1d1f] dark:text-white">approve</code> calls, and checks the shared threat registry.
+              <code className="font-mono text-xs px-1.5 py-0.5 rounded bg-black/[0.05] dark:bg-white/[0.08] text-[#1d1d1f] dark:text-white">approve</code> calls, and checks the shared threat registry.
             </p>
           </div>
 
@@ -102,13 +102,13 @@ export const LandingOverview: React.FC<LandingOverviewProps> = ({
             <div className="w-10 h-10 rounded-2xl bg-[#f5f5f7] dark:bg-[#2c2c2e] flex items-center justify-center">
               <KeyRound className="w-5 h-5 text-[#1d1d1f] dark:text-white" />
             </div>
-            <div className="text-xs font-mono text-[#59595e] dark:text-[#98989d]">STEP 03</div>
-            <h3 className="text-lg font-semibold text-[#1d1d1f] dark:text-white">
+            <div className="text-xs font-mono font-semibold text-[#59595e] dark:text-[#98989d]">STEP 03</div>
+            <h3 className="text-lg sm:text-xl font-semibold text-[#1d1d1f] dark:text-white">
               Threshold MPC Co-Sign
             </h3>
-            <p className="text-sm text-[#59595e] dark:text-[#98989d] leading-relaxed">
+            <p className="text-sm sm:text-base text-[#59595e] dark:text-[#98989d] leading-relaxed">
               Only policy-compliant transactions reach{' '}
-              <code className="font-mono text-xs text-[#1d1d1f] dark:text-white">v1.signer-prod.testnet</code>. Over-threshold transfers wait in the Owner queue.
+              <code className="font-mono text-xs px-1.5 py-0.5 rounded bg-black/[0.05] dark:bg-white/[0.08] text-[#1d1d1f] dark:text-white">v1.signer-prod.testnet</code>. Over-threshold transfers wait in the Owner queue.
             </p>
           </div>
         </div>
@@ -163,7 +163,7 @@ export const LandingOverview: React.FC<LandingOverviewProps> = ({
           ].map((row) => (
             <div
               key={row.label}
-              className="py-4 grid grid-cols-1 md:grid-cols-12 gap-2 md:gap-4 items-start md:items-center text-sm"
+              className="py-4.5 grid grid-cols-1 md:grid-cols-12 gap-2 md:gap-4 items-start md:items-center text-sm sm:text-base"
             >
               <div className="md:col-span-4 font-semibold text-[#1d1d1f] dark:text-white">
                 {row.label}

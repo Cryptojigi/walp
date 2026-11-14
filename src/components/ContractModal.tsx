@@ -36,47 +36,47 @@ export const ContractModal: React.FC<ContractModalProps> = ({
       <div className="bg-white dark:bg-[#1c1c1e] border border-black/[0.08] dark:border-white/[0.1] rounded-t-[28px] sm:rounded-[28px] max-w-md w-full p-6 shadow-2xl space-y-5">
         <div className="flex items-center justify-between pb-3 border-b border-black/[0.06] dark:border-white/[0.08]">
           <div className="flex items-center gap-2.5 min-w-0">
-            <div className="w-8 h-8 rounded-xl bg-[#f5f5f7] dark:bg-[#2c2c2e] flex items-center justify-center shrink-0">
+            <div className="w-9 h-9 rounded-xl bg-[#f5f5f7] dark:bg-[#2c2c2e] flex items-center justify-center shrink-0">
               <Server className="w-4 h-4 text-[#00a86b] dark:text-[#30d158]" />
             </div>
-            <h3 className="text-base font-semibold text-[#1d1d1f] dark:text-white truncate">
+            <h3 className="text-lg font-semibold text-[#1d1d1f] dark:text-white truncate">
               Vault & Server Configuration
             </h3>
           </div>
           <button
             type="button"
             onClick={onClose}
-            className="w-8 h-8 rounded-full bg-[#f5f5f7] dark:bg-[#2c2c2e] flex items-center justify-center text-[#59595e] dark:text-[#98989d] hover:text-[#1d1d1f] dark:hover:text-white shrink-0"
+            className="w-9 h-9 rounded-full bg-[#f5f5f7] dark:bg-[#2c2c2e] flex items-center justify-center text-[#59595e] dark:text-[#98989d] hover:text-[#1d1d1f] dark:hover:text-white shrink-0"
             aria-label="Close"
           >
             <X className="w-4 h-4" />
           </button>
         </div>
 
-        <div className="rounded-2xl bg-[#f5f5f7] dark:bg-[#2c2c2e] divide-y divide-black/[0.05] dark:divide-white/[0.06] text-xs">
-          <div className="p-3 flex items-center justify-between gap-2">
-            <span className="text-[#59595e] dark:text-[#98989d]">NEAR AI Cloud TEE Key</span>
+        <div className="rounded-2xl bg-[#f5f5f7] dark:bg-[#2c2c2e] divide-y divide-black/[0.05] dark:divide-white/[0.06] text-sm">
+          <div className="p-3.5 flex items-center justify-between gap-2">
+            <span className="text-[#59595e] dark:text-[#98989d] font-medium">NEAR AI Cloud TEE Key</span>
             {health?.nearAiConfigured ? (
-              <span className="text-[#146c32] dark:text-[#30d158] flex items-center gap-1 font-mono font-medium">
-                <CheckCircle2 className="w-3.5 h-3.5 shrink-0" />
+              <span className="text-[#146c32] dark:text-[#30d158] flex items-center gap-1.5 font-mono font-semibold text-xs sm:text-sm">
+                <CheckCircle2 className="w-4 h-4 shrink-0" />
                 <span>Configured</span>
               </span>
             ) : (
-              <span className="text-amber-600 dark:text-amber-400 flex items-center gap-1 font-mono font-medium">
-                <AlertTriangle className="w-3.5 h-3.5 shrink-0" />
+              <span className="text-amber-600 dark:text-amber-400 flex items-center gap-1.5 font-mono font-semibold text-xs sm:text-sm">
+                <AlertTriangle className="w-4 h-4 shrink-0" />
                 <span>Fallback</span>
               </span>
             )}
           </div>
-          <div className="p-3 flex items-center justify-between gap-2">
-            <span className="text-[#59595e] dark:text-[#98989d] shrink-0">Scoped Agent Key</span>
-            <span className="font-mono text-[#1d1d1f] dark:text-white truncate">
+          <div className="p-3.5 flex items-center justify-between gap-2">
+            <span className="text-[#59595e] dark:text-[#98989d] shrink-0 font-medium">Scoped Agent Key</span>
+            <span className="font-mono text-xs sm:text-sm text-[#1d1d1f] dark:text-white truncate">
               {health?.agentAccountConfigured ? health.agentAccountId : 'Not configured'}
             </span>
           </div>
-          <div className="p-3 flex items-center justify-between gap-2">
-            <span className="text-[#59595e] dark:text-[#98989d] shrink-0">Owner Admin Key</span>
-            <span className="font-mono text-[#1d1d1f] dark:text-white truncate">
+          <div className="p-3.5 flex items-center justify-between gap-2">
+            <span className="text-[#59595e] dark:text-[#98989d] shrink-0 font-medium">Owner Admin Key</span>
+            <span className="font-mono text-xs sm:text-sm text-[#1d1d1f] dark:text-white truncate">
               {health?.ownerSignerConfigured ? health.ownerAccountId : 'CLI / Wallet only'}
             </span>
           </div>
@@ -84,7 +84,7 @@ export const ContractModal: React.FC<ContractModalProps> = ({
 
         <form onSubmit={handleSubmit} className="space-y-4">
           <div>
-            <label htmlFor="walp-modal-contract-id" className="text-xs text-[#59595e] dark:text-[#98989d] font-medium block mb-1.5">
+            <label htmlFor="walp-modal-contract-id" className="text-sm text-[#59595e] dark:text-[#98989d] font-medium block mb-1.5">
               Target Vault Contract ID (NEAR Testnet)
             </label>
             <input
@@ -96,11 +96,11 @@ export const ContractModal: React.FC<ContractModalProps> = ({
               placeholder="walp-vault.your-account.testnet"
               className="w-full bg-[#f5f5f7] dark:bg-[#2c2c2e] border border-black/[0.08] dark:border-white/[0.1] rounded-2xl px-3.5 py-2.5 text-sm text-[#1d1d1f] dark:text-white font-mono focus:outline-none focus:ring-2 focus:ring-[#005bb8] dark:focus:ring-[#0a84ff]"
             />
-            <p className="text-[11px] text-[#59595e] dark:text-[#98989d] mt-2 flex items-start gap-1.5 leading-relaxed">
-              <Shield className="w-3.5 h-3.5 text-[#00a86b] dark:text-[#30d158] shrink-0 mt-0.5" />
+            <p className="text-xs sm:text-sm text-[#59595e] dark:text-[#98989d] mt-2 flex items-start gap-1.5 leading-relaxed">
+              <Shield className="w-4 h-4 text-[#00a86b] dark:text-[#30d158] shrink-0 mt-0.5" />
               <span>
                 Private keys never enter browser storage. Signing keys remain server-side in{' '}
-                <code className="font-mono text-[#1d1d1f] dark:text-white">.env</code>.
+                <code className="font-mono text-xs px-1.5 py-0.5 rounded bg-black/[0.05] dark:bg-white/[0.08] text-[#1d1d1f] dark:text-white">.env</code>.
               </span>
             </p>
           </div>

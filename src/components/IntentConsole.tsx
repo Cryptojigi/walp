@@ -204,24 +204,24 @@ export const IntentConsole: React.FC<IntentConsoleProps> = ({
         : 'border-[#34c759]/35 bg-[#34c759]/[0.08] dark:border-[#30d158]/30 dark:bg-[#30d158]/10 text-[#146c32] dark:text-[#30d158]';
 
   return (
-    <section className="rounded-[28px] bg-white dark:bg-[#1c1c1e] border border-black/[0.06] dark:border-white/[0.09] shadow-[0_8px_30px_rgba(0,0,0,0.04)] dark:shadow-[0_12px_36px_rgba(0,0,0,0.35)] p-5 sm:p-6 space-y-5 min-w-0">
+    <section className="rounded-[28px] bg-white dark:bg-[#1c1c1e] border border-black/[0.06] dark:border-white/[0.09] shadow-[0_8px_30px_rgba(0,0,0,0.04)] dark:shadow-[0_12px_36px_rgba(0,0,0,0.35)] p-4 sm:p-6 space-y-4 sm:space-y-5 min-w-0">
       {/* Header */}
       <div className="flex flex-col gap-3 pb-4 border-b border-black/[0.06] dark:border-white/[0.08]">
         <div className="flex items-center gap-2.5 min-w-0">
-          <div className="w-8 h-8 rounded-xl bg-[#f5f5f7] dark:bg-[#2c2c2e] flex items-center justify-center shrink-0">
+          <div className="w-8 h-8 sm:w-9 sm:h-9 rounded-xl bg-[#f5f5f7] dark:bg-[#2c2c2e] flex items-center justify-center shrink-0">
             <Bot className="w-4 h-4 text-[#00a86b] dark:text-[#30d158]" />
           </div>
-          <h2 className="text-base sm:text-lg font-semibold tracking-tight text-[#1d1d1f] dark:text-white truncate">
+          <h2 className="text-base sm:text-xl font-semibold tracking-tight text-[#1d1d1f] dark:text-white">
             Intent Console & Attack Simulator
           </h2>
         </div>
 
-        <div className="flex flex-col sm:flex-row sm:items-center gap-2 text-xs min-w-0">
+        <div className="flex flex-col sm:flex-row sm:items-center gap-2.5 text-sm min-w-0">
           <label
             htmlFor="walp-tee-model"
-            className="inline-flex items-center gap-1.5 text-[#59595e] dark:text-[#98989d] shrink-0"
+            className="inline-flex items-center gap-1.5 font-medium text-[#59595e] dark:text-[#98989d] shrink-0"
           >
-            <Cpu className="w-3.5 h-3.5" />
+            <Cpu className="w-4 h-4" />
             <span>TEE Model</span>
           </label>
           <select
@@ -230,7 +230,7 @@ export const IntentConsole: React.FC<IntentConsoleProps> = ({
             aria-label="TEE Model"
             value={selectedModel}
             onChange={(e) => setSelectedModel(e.target.value)}
-            className="w-full sm:w-auto sm:flex-1 max-w-full min-w-0 bg-[#f5f5f7] dark:bg-[#2c2c2e] border border-black/[0.06] dark:border-white/[0.08] rounded-xl px-3 py-2 text-xs font-mono text-[#1d1d1f] dark:text-white focus:outline-none focus:ring-2 focus:ring-[#005bb8] dark:focus:ring-[#0a84ff]"
+            className="w-full sm:w-auto sm:flex-1 max-w-full min-w-0 bg-[#f5f5f7] dark:bg-[#2c2c2e] border border-black/[0.06] dark:border-white/[0.08] rounded-xl px-3 py-2 text-sm font-mono text-[#1d1d1f] dark:text-white focus:outline-none focus:ring-2 focus:ring-[#005bb8] dark:focus:ring-[#0a84ff]"
           >
             {(models.length > 0
               ? models
@@ -253,11 +253,11 @@ export const IntentConsole: React.FC<IntentConsoleProps> = ({
       </div>
 
       {/* Normal Presets */}
-      <div className="space-y-2">
-        <div className="text-xs font-medium text-[#59595e] dark:text-[#98989d]">
+      <div className="space-y-2.5">
+        <div className="text-sm font-semibold text-[#59595e] dark:text-[#98989d]">
           Standard Execution Intents
         </div>
-        <div className="grid grid-cols-1 sm:grid-cols-3 gap-2">
+        <div className="grid grid-cols-1 sm:grid-cols-3 gap-2.5">
           {normalPresets.map((p) => (
             <button
               key={p.id}
@@ -266,7 +266,7 @@ export const IntentConsole: React.FC<IntentConsoleProps> = ({
                 setPrompt(p.prompt);
                 runAnalysis(p.prompt);
               }}
-              className="min-h-[42px] text-left px-3.5 py-2.5 rounded-2xl bg-[#f5f5f7] hover:bg-black/[0.07] dark:bg-[#2c2c2e] dark:hover:bg-[#3a3a3c] border border-black/[0.04] dark:border-white/[0.06] text-xs font-medium text-[#1d1d1f] dark:text-white transition-colors"
+              className="min-h-[44px] text-left px-3.5 py-2.5 rounded-2xl bg-[#f5f5f7] hover:bg-black/[0.07] dark:bg-[#2c2c2e] dark:hover:bg-[#3a3a3c] border border-black/[0.04] dark:border-white/[0.06] text-xs sm:text-sm font-medium text-[#1d1d1f] dark:text-white transition-colors"
             >
               {p.label}
             </button>
@@ -275,11 +275,11 @@ export const IntentConsole: React.FC<IntentConsoleProps> = ({
       </div>
 
       {/* Adversarial Attack Presets */}
-      <div className="space-y-2">
-        <div className="text-xs font-medium text-[#d70015] dark:text-[#ff6961]">
+      <div className="space-y-2.5">
+        <div className="text-sm font-semibold text-[#d70015] dark:text-[#ff6961]">
           Adversarial Red-Team Scenarios (Verified Onchain)
         </div>
-        <div className="grid grid-cols-1 sm:grid-cols-2 gap-2">
+        <div className="grid grid-cols-1 sm:grid-cols-2 gap-2.5">
           {attackPresets.map((p) => (
             <button
               key={p.id}
@@ -288,7 +288,7 @@ export const IntentConsole: React.FC<IntentConsoleProps> = ({
                 setPrompt(p.prompt);
                 runAnalysis(p.prompt);
               }}
-              className="min-h-[42px] text-left px-3.5 py-2.5 rounded-2xl bg-[#ff3b30]/[0.07] hover:bg-[#ff3b30]/[0.13] dark:bg-[#ff453a]/10 dark:hover:bg-[#ff453a]/20 border border-[#ff3b30]/20 dark:border-[#ff453a]/25 text-xs font-medium text-[#c92a22] dark:text-[#ff8a80] transition-colors"
+              className="min-h-[44px] text-left px-3.5 py-2.5 rounded-2xl bg-[#ff3b30]/[0.07] hover:bg-[#ff3b30]/[0.13] dark:bg-[#ff453a]/10 dark:hover:bg-[#ff453a]/20 border border-[#ff3b30]/20 dark:border-[#ff453a]/25 text-xs sm:text-sm font-medium text-[#c92a22] dark:text-[#ff8a80] transition-colors"
             >
               {p.label}
             </button>
@@ -302,7 +302,7 @@ export const IntentConsole: React.FC<IntentConsoleProps> = ({
           e.preventDefault();
           runAnalysis(prompt);
         }}
-        className="space-y-3"
+        className="space-y-3.5"
       >
         <textarea
           id="walp-intent-prompt"
@@ -319,11 +319,11 @@ export const IntentConsole: React.FC<IntentConsoleProps> = ({
           }}
           rows={3}
           placeholder="Enter natural-language intent or prompt-injection test..."
-          className="w-full bg-[#f5f5f7] dark:bg-[#2c2c2e] border border-black/[0.07] dark:border-white/[0.08] rounded-2xl p-3.5 text-sm text-[#1d1d1f] dark:text-white placeholder-[#59595e] focus:outline-none focus:ring-2 focus:ring-[#005bb8] dark:focus:ring-[#0a84ff] font-mono resize-none"
+          className="w-full bg-[#f5f5f7] dark:bg-[#2c2c2e] border border-black/[0.07] dark:border-white/[0.08] rounded-2xl p-4 text-sm text-[#1d1d1f] dark:text-white placeholder-[#59595e] focus:outline-none focus:ring-2 focus:ring-[#005bb8] dark:focus:ring-[#0a84ff] font-mono leading-relaxed resize-none"
         />
 
         <div className="space-y-3">
-          <label className="flex items-center gap-2.5 text-xs text-[#59595e] dark:text-[#98989d] cursor-pointer select-none">
+          <label className="flex items-center gap-2.5 text-sm font-medium text-[#59595e] dark:text-[#98989d] cursor-pointer select-none">
             <input
               id="walp-auto-broadcast"
               name="autoBroadcast"
@@ -339,7 +339,7 @@ export const IntentConsole: React.FC<IntentConsoleProps> = ({
             <button
               type="submit"
               disabled={!prompt.trim() || isAnalyzing}
-              className="min-h-[44px] flex-1 px-4 py-2.5 rounded-2xl bg-[#f5f5f7] hover:bg-black/[0.08] dark:bg-[#2c2c2e] dark:hover:bg-[#3a3a3c] disabled:opacity-45 text-xs font-semibold text-[#1d1d1f] dark:text-white border border-black/[0.06] dark:border-white/[0.08] transition-colors"
+              className="min-h-[48px] flex-1 px-4 py-2.5 rounded-2xl bg-[#f5f5f7] hover:bg-black/[0.08] dark:bg-[#2c2c2e] dark:hover:bg-[#3a3a3c] disabled:opacity-45 text-sm font-semibold text-[#1d1d1f] dark:text-white border border-black/[0.06] dark:border-white/[0.08] transition-colors"
             >
               {isAnalyzing ? 'Analyzing & Building RLP...' : '1. Parse & Pre-Flight Risk'}
             </button>
@@ -348,9 +348,9 @@ export const IntentConsole: React.FC<IntentConsoleProps> = ({
               type="button"
               disabled={!unsignedTx || !vaultContractId || !agentConfigured || isExecuting}
               onClick={handleSubmitOnchain}
-              className="min-h-[44px] flex-1 px-4 py-2.5 rounded-2xl bg-[#1d1d1f] hover:bg-black dark:bg-[#00ec97] dark:hover:bg-[#00d688] disabled:bg-black/[0.08] dark:disabled:bg-[#2c2c2e] disabled:text-[#8e8e93] dark:disabled:text-[#636366] text-xs font-semibold text-white dark:text-black inline-flex items-center justify-center gap-1.5 transition-colors"
+              className="min-h-[48px] flex-1 px-4 py-2.5 rounded-2xl bg-[#1d1d1f] hover:bg-black dark:bg-[#00ec97] dark:hover:bg-[#00d688] disabled:bg-black/[0.08] dark:disabled:bg-[#2c2c2e] disabled:text-[#8e8e93] dark:disabled:text-[#636366] text-sm font-semibold text-white dark:text-black inline-flex items-center justify-center gap-2 transition-colors"
             >
-              <Send className="w-3.5 h-3.5 shrink-0" />
+              <Send className="w-4 h-4 shrink-0" />
               <span>{isExecuting ? 'Sending to NEAR...' : '2. Submit RLP to walp-vault'}</span>
             </button>
           </div>
@@ -358,14 +358,14 @@ export const IntentConsole: React.FC<IntentConsoleProps> = ({
       </form>
 
       {errorMsg && (
-        <div className="p-3.5 rounded-2xl bg-[#ff3b30]/10 border border-[#ff3b30]/25 text-xs text-[#c92a22] dark:text-[#ff8a80] font-mono break-words">
+        <div className="p-4 rounded-2xl bg-[#ff3b30]/10 border border-[#ff3b30]/25 text-sm text-[#c92a22] dark:text-[#ff8a80] font-mono break-words leading-relaxed">
           {errorMsg}
         </div>
       )}
 
       {/* Parsed Intent + Unsigned RLP */}
       {parsed && unsignedTx && (
-        <div className="rounded-2xl bg-[#f5f5f7] dark:bg-[#2c2c2e] p-4 space-y-3 text-xs font-mono min-w-0">
+        <div className="rounded-2xl bg-[#f5f5f7] dark:bg-[#2c2c2e] p-4 sm:p-5 space-y-3 text-sm font-mono min-w-0">
           <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-1 text-[#59595e] dark:text-[#98989d]">
             <span className="text-[#1d1d1f] dark:text-white font-semibold break-all">
               Parser: {parsed.parsedBy} ({parsed.modelUsed})
@@ -375,36 +375,36 @@ export const IntentConsole: React.FC<IntentConsoleProps> = ({
             </span>
           </div>
           {parsed.warning && (
-            <div className="text-amber-700 dark:text-amber-300 text-[11px] break-words">
+            <div className="text-amber-700 dark:text-amber-300 text-xs sm:text-sm break-words leading-relaxed">
               {parsed.warning}
             </div>
           )}
           {parsed.injectionSignals.length > 0 && (
-            <div className="text-[#c92a22] dark:text-[#ff8a80] text-[11px] break-words">
+            <div className="text-[#c92a22] dark:text-[#ff8a80] text-xs sm:text-sm font-medium break-words leading-relaxed">
               Injection signals: {parsed.injectionSignals.join(', ')}
             </div>
           )}
-          <div className="grid grid-cols-2 sm:grid-cols-4 gap-3 pt-2.5 border-t border-black/[0.06] dark:border-white/[0.08]">
+          <div className="grid grid-cols-2 sm:grid-cols-4 gap-3.5 pt-3 border-t border-black/[0.06] dark:border-white/[0.08]">
             <div className="min-w-0">
-              <span className="text-[#59595e] dark:text-[#98989d] block text-[10px]">Chain ID</span>
-              <span className="text-[#1d1d1f] dark:text-white">{parsed.chainId}</span>
+              <span className="text-[#59595e] dark:text-[#98989d] block text-xs font-medium mb-0.5">Chain ID</span>
+              <span className="text-[#1d1d1f] dark:text-white font-semibold text-sm">{parsed.chainId}</span>
             </div>
             <div className="min-w-0">
-              <span className="text-[#59595e] dark:text-[#98989d] block text-[10px]">Value</span>
-              <span className="text-[#1d1d1f] dark:text-white">{parsed.amountEth} ETH</span>
+              <span className="text-[#59595e] dark:text-[#98989d] block text-xs font-medium mb-0.5">Value</span>
+              <span className="text-[#1d1d1f] dark:text-white font-semibold text-sm">{parsed.amountEth} ETH</span>
             </div>
             <div className="min-w-0">
-              <span className="text-[#59595e] dark:text-[#98989d] block text-[10px]">Recipient</span>
-              <span className="text-[#1d1d1f] dark:text-white truncate block" title={parsed.recipient}>
+              <span className="text-[#59595e] dark:text-[#98989d] block text-xs font-medium mb-0.5">Recipient</span>
+              <span className="text-[#1d1d1f] dark:text-white font-semibold text-sm truncate block" title={parsed.recipient}>
                 {parsed.recipient.slice(0, 8)}...{parsed.recipient.slice(-6)}
               </span>
             </div>
             <div className="min-w-0">
-              <span className="text-[#59595e] dark:text-[#98989d] block text-[10px]">Calldata</span>
-              <span className="text-[#1d1d1f] dark:text-white truncate block">{parsed.calldataHex.slice(0, 10)}</span>
+              <span className="text-[#59595e] dark:text-[#98989d] block text-xs font-medium mb-0.5">Calldata</span>
+              <span className="text-[#1d1d1f] dark:text-white font-semibold text-sm truncate block">{parsed.calldataHex.slice(0, 10)}</span>
             </div>
           </div>
-          <div className="pt-2.5 border-t border-black/[0.06] dark:border-white/[0.08] text-[11px] text-[#59595e] dark:text-[#98989d] space-y-1 min-w-0">
+          <div className="pt-3 border-t border-black/[0.06] dark:border-white/[0.08] text-xs sm:text-sm text-[#59595e] dark:text-[#98989d] space-y-1.5 min-w-0">
             <div className="break-all">Sighash (keccak256): 0x{unsignedTx.sighashHex}</div>
             <div className="truncate" title={unsignedTx.rawTxHex}>
               Unsigned RLP: {unsignedTx.rawTxHex}
@@ -415,7 +415,7 @@ export const IntentConsole: React.FC<IntentConsoleProps> = ({
 
       {/* Risk Evaluation Breakdown */}
       {riskEval && (
-        <div className={`border rounded-2xl p-4 space-y-2.5 text-xs min-w-0 ${verdictStyle}`}>
+        <div className={`border rounded-2xl p-4 sm:p-5 space-y-3 text-sm min-w-0 ${verdictStyle}`}>
           <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-1 font-mono font-semibold">
             <span className="flex items-center gap-1.5">
               {riskEval.verdict === 'BLOCK' ? (
@@ -427,17 +427,17 @@ export const IntentConsole: React.FC<IntentConsoleProps> = ({
               )}
               <span>Pre-Flight Verdict: {riskEval.verdict}</span>
             </span>
-            <span className="break-all text-[11px]">{riskEval.reasonCode}</span>
+            <span className="break-all text-xs sm:text-sm">{riskEval.reasonCode}</span>
           </div>
-          <div className="space-y-2 pt-1 text-[#1d1d1f] dark:text-[#f5f5f7]">
+          <div className="space-y-2 pt-1.5 text-[#1d1d1f] dark:text-[#f5f5f7]">
             {riskEval.checks.map((c) => (
               <div
                 key={c.id}
-                className="flex flex-col sm:flex-row sm:items-start sm:justify-between gap-0.5 sm:gap-3 text-[11px] font-mono min-w-0"
+                className="flex flex-col sm:flex-row sm:items-start sm:justify-between gap-0.5 sm:gap-3 text-xs sm:text-sm font-mono min-w-0"
               >
-                <span className="text-[#59595e] dark:text-[#98989d] shrink-0">{c.label}</span>
+                <span className="text-[#59595e] dark:text-[#98989d] min-w-0 break-words font-medium">{c.label}</span>
                 <span
-                  className={`break-words sm:text-right min-w-0 ${
+                  className={`break-words sm:text-right sm:ml-auto sm:max-w-[60%] sm:shrink-0 min-w-0 font-semibold ${
                     c.status === 'BLOCK'
                       ? 'text-[#c92a22] dark:text-[#ff6961]'
                       : c.status === 'WARN'
@@ -456,7 +456,7 @@ export const IntentConsole: React.FC<IntentConsoleProps> = ({
       {/* Live Onchain Execution Outcome */}
       {execOutcome && (
         <div
-          className={`border rounded-2xl p-4 space-y-2.5 text-xs font-mono min-w-0 ${
+          className={`border rounded-2xl p-4 sm:p-5 space-y-3 text-sm font-mono min-w-0 ${
             execOutcome.success
               ? 'bg-[#34c759]/[0.08] border-[#34c759]/35 dark:bg-[#30d158]/10 dark:border-[#30d158]/30 text-[#1d1d1f] dark:text-[#f5f5f7]'
               : 'bg-[#ff3b30]/[0.08] border-[#ff3b30]/30 dark:bg-[#ff453a]/10 dark:border-[#ff453a]/30 text-[#c92a22] dark:text-[#ff8a80]'
@@ -475,38 +475,41 @@ export const IntentConsole: React.FC<IntentConsoleProps> = ({
               href={execOutcome.explorerUrl}
               target="_blank"
               rel="noreferrer"
-              className="text-[#005bb8] dark:text-[#0a84ff] hover:underline inline-flex items-center gap-1 shrink-0"
+              className="text-[#005bb8] dark:text-[#0a84ff] hover:underline inline-flex items-center gap-1 shrink-0 font-semibold text-xs sm:text-sm"
             >
               <span>NearBlocks</span>
-              <ExternalLink className="w-3 h-3" />
+              <ExternalLink className="w-3.5 h-3.5" />
             </a>
           </div>
+          <div className="text-[11px] sm:text-xs text-[#59595e] dark:text-[#98989d] break-all">
+            NEAR tx: {execOutcome.txHash}
+          </div>
           {execOutcome.failureReason && (
-            <div className="text-[#c92a22] dark:text-[#ff8a80] break-all">{execOutcome.failureReason}</div>
+            <div className="text-[#c92a22] dark:text-[#ff8a80] break-all leading-relaxed">{execOutcome.failureReason}</div>
           )}
           {execOutcome.sepoliaBroadcast && (
-            <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-2 pt-2 border-t border-black/[0.06] dark:border-white/[0.08]">
-              <span className="text-[#146c32] dark:text-[#30d158] truncate">
+            <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-2 pt-2.5 border-t border-black/[0.06] dark:border-white/[0.08]">
+              <span className="text-[#146c32] dark:text-[#30d158] truncate font-medium">
                 Sepolia Broadcast: {execOutcome.sepoliaBroadcast.txHash.slice(0, 18)}...
               </span>
               <a
                 href={execOutcome.sepoliaBroadcast.explorerUrl}
                 target="_blank"
                 rel="noreferrer"
-                className="text-[#005bb8] dark:text-[#0a84ff] hover:underline inline-flex items-center gap-1 shrink-0"
+                className="text-[#005bb8] dark:text-[#0a84ff] hover:underline inline-flex items-center gap-1 shrink-0 font-semibold text-xs sm:text-sm"
               >
                 <span>Etherscan</span>
-                <ExternalLink className="w-3 h-3" />
+                <ExternalLink className="w-3.5 h-3.5" />
               </a>
             </div>
           )}
           {execOutcome.broadcastError && (
-            <div className="text-amber-700 dark:text-amber-300 break-words">
+            <div className="text-amber-700 dark:text-amber-300 break-words leading-relaxed">
               Sepolia broadcast note: {execOutcome.broadcastError}
             </div>
           )}
           {execOutcome.events.length > 0 && (
-            <div className="pt-2 border-t border-black/[0.06] dark:border-white/[0.08] space-y-1 text-[11px] text-[#59595e] dark:text-[#98989d]">
+            <div className="pt-2.5 border-t border-black/[0.06] dark:border-white/[0.08] space-y-1.5 text-xs text-[#59595e] dark:text-[#98989d]">
               {execOutcome.events.map((ev, idx) => (
                 <div key={idx} className="break-all">
                   EVENT_JSON {ev.event}: {JSON.stringify(ev.data[0])}
