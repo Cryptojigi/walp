@@ -284,10 +284,10 @@ export function App() {
         onOpenConfigModal={() => setIsConfigOpen(true)}
       />
 
-      <main className="flex-1 max-w-6xl w-full mx-auto px-4 sm:px-6 lg:px-8 py-6 space-y-6 min-w-0">
+      <main className="flex-1 max-w-6xl w-full mx-auto px-3.5 sm:px-6 lg:px-8 py-4 sm:py-6 space-y-4 sm:space-y-6 min-w-0">
         {serverError && (
-          <div className="rounded-2xl bg-[#ff3b30]/10 border border-[#ff3b30]/25 p-4 flex items-start gap-3 text-xs text-[#c92a22] dark:text-[#ff8a80]">
-            <AlertTriangle className="w-4 h-4 shrink-0 mt-0.5" />
+          <div className="rounded-2xl bg-[#ff3b30]/10 border border-[#ff3b30]/25 p-4 flex items-start gap-3 text-sm text-[#c92a22] dark:text-[#ff8a80]">
+            <AlertTriangle className="w-5 h-5 shrink-0 mt-0.5" />
             <div className="min-w-0">
               <p className="font-semibold">Backend Server Notice</p>
               <p className="mt-0.5 opacity-90 break-words">{serverError}</p>
@@ -296,12 +296,12 @@ export function App() {
         )}
 
         {!activeContractId && !serverError && (
-          <div className="rounded-2xl bg-amber-500/10 border border-amber-500/25 p-4 flex items-start gap-3 text-xs text-amber-800 dark:text-amber-300">
-            <Terminal className="w-4 h-4 shrink-0 mt-0.5" />
+          <div className="rounded-2xl bg-amber-500/10 border border-amber-500/25 p-4 flex items-start gap-3 text-sm text-amber-800 dark:text-amber-300">
+            <Terminal className="w-5 h-5 shrink-0 mt-0.5" />
             <div className="space-y-1 min-w-0">
               <p className="font-semibold">No Deployed Vault Contract Selected</p>
               <p className="opacity-90 break-words">
-                Set <code className="font-mono px-1 py-0.5 rounded bg-black/[0.06] dark:bg-white/[0.1]">WALP_VAULT_CONTRACT_ID</code> in <code className="font-mono px-1 py-0.5 rounded bg-black/[0.06] dark:bg-white/[0.1]">.env</code> or tap Vault Config above.
+                Set <code className="font-mono text-xs px-1.5 py-0.5 rounded bg-black/[0.06] dark:bg-white/[0.1]">WALP_VAULT_CONTRACT_ID</code> in <code className="font-mono text-xs px-1.5 py-0.5 rounded bg-black/[0.06] dark:bg-white/[0.1]">.env</code> or tap Vault Config above.
               </p>
             </div>
           </div>
@@ -359,12 +359,12 @@ export function App() {
         )}
       </main>
 
-      <footer className="border-t border-black/[0.06] dark:border-white/[0.08] py-5 px-4 sm:px-6 lg:px-8 text-xs text-[#59595e] dark:text-[#98989d]">
+      <footer className="border-t border-black/[0.06] dark:border-white/[0.08] py-5 px-4 sm:px-6 lg:px-8 text-xs sm:text-sm text-[#59595e] dark:text-[#98989d]">
         <div className="max-w-6xl mx-auto flex flex-col sm:flex-row items-start sm:items-center justify-between gap-2">
           <span>
-            Walp — NEAR Rust RLP Firewall + Chain Signatures (<code className="font-mono">v1.signer-prod.testnet</code>)
+            Walp — NEAR Rust RLP Firewall + Chain Signatures (<code className="font-mono text-xs">v1.signer-prod.testnet</code>)
           </span>
-          <span className="font-mono">
+          <span className="font-mono text-xs">
             AI: cloud-api.near.ai TEE · 1Click: dry-run quotes only
           </span>
         </div>

@@ -4,19 +4,23 @@
 
 @layer base {
   html {
+    font-size: 16px;
+    -webkit-text-size-adjust: 100%;
     scroll-behavior: smooth;
     -webkit-tap-highlight-color: transparent;
   }
 
   body {
     font-family: -apple-system, BlinkMacSystemFont, "SF Pro Display", "SF Pro Text", "Inter", system-ui, sans-serif;
-    letter-spacing: -0.011em;
+    font-size: 0.9375rem; /* 15px base text size for comfortable viewing */
+    line-height: 1.55;
+    letter-spacing: -0.005em;
     transition: background-color 200ms ease, color 200ms ease;
   }
 
   code, pre, .font-mono {
     font-family: "SF Mono", "JetBrains Mono", ui-monospace, SFMono-Regular, Menlo, monospace;
-    letter-spacing: -0.01em;
+    letter-spacing: 0em;
   }
 }
 

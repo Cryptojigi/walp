@@ -37,6 +37,7 @@ Thumbs.db
 *.njsproj
 *.sln
 *.sw?
+*.bak*
 
 # Contract build artifacts / Rust / JS SDK temp
 target/
